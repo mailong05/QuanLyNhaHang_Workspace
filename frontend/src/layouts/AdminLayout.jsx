@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Layout, Menu, Button } from 'antd';
-import { DashboardOutlined, TableOutlined, LogoutOutlined } from '@ant-design/icons';
+import { DashboardOutlined, TableOutlined, LogoutOutlined, CoffeeOutlined, TagOutlined } from '@ant-design/icons';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 
 const { Header, Sider, Content } = Layout;
@@ -27,6 +27,16 @@ const AdminLayout = () => {
       key: '/admin/tables',
       icon: <TableOutlined />,
       label: 'Quản lý Bàn',
+    },
+    {
+      key: '/admin/menu',
+      icon: <CoffeeOutlined />,
+      label: 'Quản lý Món ăn',
+    },
+    {
+      key: '/admin/vouchers',
+      icon: <TagOutlined />,
+      label: 'Khuyến Mãi',
     },
   ];
 
