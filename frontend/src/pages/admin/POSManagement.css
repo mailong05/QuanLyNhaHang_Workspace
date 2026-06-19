@@ -1,0 +1,21 @@
+/* Các hiệu ứng phụ cho màn hình POS có thể đặt ở đây */
+.ant-card-hoverable:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+}
+/* src/pages/admin/POSManagement.css */
+.table-card {
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.table-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 16px rgba(0,0,0,0.1) !important;
+}
+
+.table-card-selected {
+  border: 2px solid #1890ff !important;
+  box-shadow: 0 0 10px rgba(24, 144, 255, 0.5) !important;
+  transform: scale(1.02);
+}

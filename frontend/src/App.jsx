@@ -6,6 +6,7 @@ import TableManagement from './pages/admin/TableManagement';
 import MenuManagement from './pages/admin/MenuManagement';
 import VoucherManagement from './pages/admin/VoucherManagement';
 import BookingManagement from './pages/admin/BookingManagement';
+import POSManagement from './pages/admin/POSManagement';
 
 function Home() {
   return (
@@ -36,6 +37,7 @@ function App() {
         <Route path="/admin" element={<ProtectedRoute />}>
           <Route element={<AdminLayout />}>
             <Route index element={<AdminDashboard />} />
+            <Route path="pos" element={<POSManagement />} />
             <Route path="tables" element={<TableManagement />} />
             <Route path="menu" element={<MenuManagement />} />
             <Route path="vouchers" element={<VoucherManagement />} />
