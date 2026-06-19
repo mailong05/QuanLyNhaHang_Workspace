@@ -5,6 +5,7 @@ import AdminLayout from './layouts/AdminLayout';
 import TableManagement from './pages/admin/TableManagement';
 import MenuManagement from './pages/admin/MenuManagement';
 import VoucherManagement from './pages/admin/VoucherManagement';
+import BookingManagement from './pages/admin/BookingManagement';
 
 function Home() {
   return (
@@ -38,6 +39,7 @@ function App() {
             <Route path="tables" element={<TableManagement />} />
             <Route path="menu" element={<MenuManagement />} />
             <Route path="vouchers" element={<VoucherManagement />} />
+            <Route path="bookings" element={<BookingManagement />} />
           </Route>
         </Route>
       </Routes>
