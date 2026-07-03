@@ -10,6 +10,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface GiaoCaRepository extends JpaRepository<GiaoCa, Long> {
     
-    @Query("SELECT g FROM GiaoCa g JOIN FETCH g.nhanVien JOIN FETCH g.caLamViec")
+    @Query(value = "SELECT g FROM GiaoCa g JOIN FETCH g.nhanVien JOIN FETCH g.caLamViec",
+           countQuery = "SELECT COUNT(g) FROM GiaoCa g")
     Page<GiaoCa> findAllWithRelations(Pageable pageable);
 }

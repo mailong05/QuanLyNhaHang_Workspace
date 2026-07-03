@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Row, Col, Card, message, Typography, Badge } from 'antd';
+import { Row, Col, Card, message, Typography, Badge, Button, Table, Modal, Space, Image, InputNumber } from 'antd';
+import { PlusOutlined, DollarOutlined, CoffeeOutlined } from '@ant-design/icons';
 import apiClient from '../../services/apiClient';
-import './POSManagement.css'; // Optional: for extra hover effects if needed
+import './POSManagement.css';
 
 const { Title, Text } = Typography;
 
@@ -10,12 +11,28 @@ const POSManagement = () => {
   const [loading, setLoading] = useState(false);
   const [selectedTable, setSelectedTable] = useState(null);
 
+  // State cho Khu vực Order
+  const [currentOrder, setCurrentOrder] = useState(null);
+  const [orderItems, setOrderItems] = useState([]);
+  const [loadingOrder, setLoadingOrder] = useState(false);
+
+  // State cho Modal Menu
+  const [isMenuModalVisible, setIsMenuModalVisible] = useState(false);
+  const [menuList, setMenuList] = useState([]);
+  const [loadingMenu, setLoadingMenu] = useState(false);
+
   const fetchTables = async () => {
     setLoading(true);
     try {
       const data = await apiClient.get('/api/v1/ban-an');
       const tableList = data.content ? data.content : data;
       setTables(tableList);
+      
+      // Update selectedTable reference to reflect new status if it was selected
+      if (selectedTable) {
+        const updatedTable = tableList.find(t => t.id === selectedTable.id);
+        if (updatedTable) setSelectedTable(updatedTable);
+      }
     } catch (error) {
       message.error(error.message || 'Lỗi khi tải danh sách bàn');
     } finally {
@@ -25,21 +42,48 @@ const POSManagement = () => {
 
   useEffect(() => {
     fetchTables();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Hàm xác định màu sắc dựa vào trạng thái
+  // Fetch Order details when a DANG_PHUC_VU table is selected
+  useEffect(() => {
+    if (selectedTable && selectedTable.trangThai === 'DANG_SUDUNG') {
+      fetchOrderDetails(selectedTable.id);
+    } else {
+      setCurrentOrder(null);
+      setOrderItems([]);
+    }
+  }, [selectedTable]);
+
+  const fetchOrderDetails = async (banId) => {
+    setLoadingOrder(true);
+    try {
+      // Gọi API giả định
+      const res = await apiClient.get(`/api/v1/pos/ban/${banId}/hoa-don`);
+      setCurrentOrder(res);
+      setOrderItems(res.chiTiets || res.items || []);
+    } catch (error) {
+      // Silently handle or show error
+      console.log('Chưa có hóa đơn cho bàn này hoặc API chưa sẵn sàng', error);
+      setCurrentOrder(null);
+      setOrderItems([]);
+    } finally {
+      setLoadingOrder(false);
+    }
+  };
+
   const getTableStyle = (status) => {
     switch (status) {
       case 'TRONG':
-        return { borderColor: '#52c41a', backgroundColor: '#f6ffed' }; // Xanh lá
+        return { borderColor: '#52c41a', backgroundColor: '#f6ffed' };
       case 'DANG_SUDUNG':
-        return { borderColor: '#ff4d4f', backgroundColor: '#fff1f0' }; // Đỏ
+        return { borderColor: '#ff4d4f', backgroundColor: '#fff1f0' };
       case 'DA_DAT':
-        return { borderColor: '#faad14', backgroundColor: '#fffbe6' }; // Vàng
+        return { borderColor: '#faad14', backgroundColor: '#fffbe6' };
       case 'DAT_TRUOC':
-        return { borderColor: '#1890ff', backgroundColor: '#e6f7ff' }; // Xanh dương
+        return { borderColor: '#1890ff', backgroundColor: '#e6f7ff' };
       default:
-        return { borderColor: '#d9d9d9', backgroundColor: '#ffffff' }; // Mặc định
+        return { borderColor: '#d9d9d9', backgroundColor: '#ffffff' };
     }
   };
 
@@ -55,6 +99,89 @@ const POSManagement = () => {
 
   const handleTableClick = (table) => {
     setSelectedTable(table);
+  };
+
+  // --- ACTIONS CHO ORDER ---
+
+  const handleOpenTable = async () => {
+    if (!selectedTable) return;
+    try {
+      await apiClient.post('/api/v1/pos/mo-ban', { banId: selectedTable.id });
+      message.success(`Đã mở bàn ${selectedTable.maBan}!`);
+      fetchTables(); // Sẽ tự trigger lại effect update selectedTable và fetchOrder
+    } catch (error) {
+      message.error(error.message || 'Lỗi khi mở bàn');
+    }
+  };
+
+  const showMenuModal = async () => {
+    setIsMenuModalVisible(true);
+    setLoadingMenu(true);
+    try {
+      const data = await apiClient.get('/api/v1/mon-an');
+      const menus = data.content ? data.content : data;
+      setMenuList(menus);
+    } catch (error) {
+      message.error('Lỗi khi tải Menu');
+    } finally {
+      setLoadingMenu(false);
+    }
+  };
+
+  const handleAddItemToOrder = async (monAn) => {
+    try {
+      const payload = {
+        banId: selectedTable.id,
+        maMon: monAn.maMon,
+        soLuong: 1
+      };
+      await apiClient.post('/api/v1/pos/them-mon', payload);
+      message.success(`Đã thêm ${monAn.tenMon} vào order!`);
+      // Reload order details
+      fetchOrderDetails(selectedTable.id);
+    } catch (error) {
+      message.error(error.message || 'Lỗi khi thêm món');
+    }
+  };
+
+  // --- RENDER COLUMNS ---
+
+  const orderColumns = [
+    { title: 'Tên món', dataIndex: 'tenMon', key: 'tenMon' },
+    { title: 'SL', dataIndex: 'soLuong', key: 'soLuong', width: 60, align: 'center' },
+    { title: 'Đơn giá', dataIndex: 'donGia', key: 'donGia', render: (val) => val?.toLocaleString('vi-VN') },
+    { title: 'Thành tiền', key: 'thanhTien', render: (_, record) => (record.soLuong * record.donGia)?.toLocaleString('vi-VN') },
+  ];
+
+  const menuColumns = [
+    {
+      title: 'Ảnh',
+      dataIndex: 'urlHinhAnh',
+      key: 'urlHinhAnh',
+      render: (url) => url ? <Image width={40} height={40} src={url} style={{ objectFit: 'cover' }} /> : 'Không có'
+    },
+    { title: 'Tên món', dataIndex: 'tenMon', key: 'tenMon' },
+    { title: 'Giá', dataIndex: 'donGia', key: 'donGia', render: (val) => `${val?.toLocaleString('vi-VN')} đ` },
+    {
+      title: 'Hành động',
+      key: 'action',
+      render: (_, record) => (
+        <Button 
+          type="primary" 
+          size="small" 
+          icon={<PlusOutlined />} 
+          onClick={() => handleAddItemToOrder(record)}
+          disabled={record.trangThai === 'HET_HANG'}
+        >
+          Thêm
+        </Button>
+      )
+    }
+  ];
+
+  // Tính tổng tiền an toàn
+  const calculateTotal = () => {
+    return orderItems.reduce((acc, item) => acc + (item.soLuong * item.donGia), 0);
   };
 
   return (
@@ -110,19 +237,78 @@ const POSManagement = () => {
         <Col span={10}>
           <Card 
             title="Chi tiết Order" 
-            style={{ minHeight: '80vh' }}
+            style={{ minHeight: '80vh', display: 'flex', flexDirection: 'column' }}
+            bodyStyle={{ flex: 1, display: 'flex', flexDirection: 'column' }}
+            extra={
+              selectedTable?.trangThai === 'DANG_SUDUNG' && (
+                <Button type="primary" icon={<PlusOutlined />} onClick={showMenuModal}>
+                  Thêm Món
+                </Button>
+              )
+            }
           >
             {selectedTable ? (
-              <div style={{ textAlign: 'center', marginTop: '20px' }}>
-                <Title level={5} type="success">Đang thao tác tại: Bàn {selectedTable.maBan}</Title>
-                <Text type="secondary">({selectedTable.viTri})</Text>
-                {/* Khu vực chừa sẵn cho Component Order Detail */}
-                <div style={{ marginTop: '40px', padding: '20px', border: '1px dashed #d9d9d9', borderRadius: '8px' }}>
-                  <Text type="secondary">Khu vực hiển thị danh sách món ăn sẽ được phát triển ở Phase 6.2</Text>
+              <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+                <div style={{ textAlign: 'center', marginBottom: '16px' }}>
+                  <Title level={5} type="success" style={{ margin: 0 }}>Đang thao tác tại: Bàn {selectedTable.maBan}</Title>
+                  <Text type="secondary">({selectedTable.viTri})</Text>
                 </div>
+
+                {/* Xử lý render UI tùy theo trạng thái của bàn */}
+                {selectedTable.trangThai === 'TRONG' ? (
+                  <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Button 
+                      type="primary" 
+                      size="large" 
+                      icon={<CoffeeOutlined />} 
+                      style={{ height: '60px', fontSize: '18px', borderRadius: '8px' }}
+                      onClick={handleOpenTable}
+                    >
+                      Mở Bàn / Phục Vụ
+                    </Button>
+                  </div>
+                ) : selectedTable.trangThai === 'DANG_SUDUNG' ? (
+                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+                    <Table 
+                      columns={orderColumns} 
+                      dataSource={orderItems} 
+                      rowKey="id" // Giả định record có id hoặc maMon
+                      size="small" 
+                      pagination={false}
+                      loading={loadingOrder}
+                      scroll={{ y: 'calc(80vh - 250px)' }} // Giới hạn chiều cao cho scroll
+                    />
+                    
+                    {/* Khu vực Thanh Toán bám đáy */}
+                    <Card style={{ marginTop: 'auto', backgroundColor: '#fafafa', borderColor: '#d9d9d9' }} bodyStyle={{ padding: '16px' }}>
+                      <Row justify="space-between" align="middle" style={{ marginBottom: '16px' }}>
+                        <Text strong style={{ fontSize: '16px' }}>Tổng tiền:</Text>
+                        <Text strong type="danger" style={{ fontSize: '20px' }}>
+                          {calculateTotal().toLocaleString('vi-VN')} đ
+                        </Text>
+                      </Row>
+                      <Button 
+                        type="primary" 
+                        icon={<DollarOutlined />} 
+                        size="large" 
+                        block 
+                        style={{ backgroundColor: '#52c41a', borderColor: '#52c41a', height: '50px', fontSize: '16px' }}
+                        disabled={orderItems.length === 0}
+                      >
+                        Thanh Toán
+                      </Button>
+                    </Card>
+                  </div>
+                ) : (
+                  <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Text type="secondary" style={{ fontSize: '16px' }}>
+                      Bàn đang ở trạng thái {getStatusText(selectedTable.trangThai)}, không thể Order.
+                    </Text>
+                  </div>
+                )}
               </div>
             ) : (
-              <div style={{ textAlign: 'center', marginTop: '50px' }}>
+              <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <Text type="secondary" style={{ fontSize: '16px' }}>
                   Vui lòng chọn một bàn để thao tác
                 </Text>
@@ -131,6 +317,25 @@ const POSManagement = () => {
           </Card>
         </Col>
       </Row>
+
+      {/* Modal Danh sách món ăn */}
+      <Modal
+        title="Thêm Món Ăn"
+        open={isMenuModalVisible}
+        onCancel={() => setIsMenuModalVisible(false)}
+        footer={null}
+        width={700}
+        destroyOnClose
+      >
+        <Table 
+          columns={menuColumns} 
+          dataSource={menuList} 
+          rowKey="maMon" 
+          loading={loadingMenu}
+          pagination={{ pageSize: 5 }}
+          size="small"
+        />
+      </Modal>
     </div>
   );
 };
