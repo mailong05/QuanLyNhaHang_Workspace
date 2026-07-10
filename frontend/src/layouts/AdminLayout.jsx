@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Layout, Menu, Button } from 'antd';
-import { DashboardOutlined, TableOutlined, LogoutOutlined, CoffeeOutlined, TagOutlined, ScheduleOutlined, AppstoreAddOutlined } from '@ant-design/icons';
+import { DashboardOutlined, TableOutlined, LogoutOutlined, CoffeeOutlined, TagOutlined, ScheduleOutlined, AppstoreAddOutlined, ClockCircleOutlined, LineChartOutlined } from '@ant-design/icons';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 
 const { Header, Sider, Content } = Layout;
@@ -47,6 +47,16 @@ const AdminLayout = () => {
       key: '/admin/vouchers',
       icon: <TagOutlined />,
       label: 'Khuyến Mãi',
+    },
+    {
+      key: '/admin/shifts',
+      icon: <ClockCircleOutlined />,
+      label: 'Giao Ca',
+    },
+    {
+      key: '/admin/analytics',
+      icon: <LineChartOutlined />,
+      label: 'Thống Kê',
     },
   ];
 

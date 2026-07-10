@@ -7,24 +7,10 @@ import MenuManagement from './pages/admin/MenuManagement';
 import VoucherManagement from './pages/admin/VoucherManagement';
 import BookingManagement from './pages/admin/BookingManagement';
 import POSManagement from './pages/admin/POSManagement';
-
-function Home() {
-  return (
-    <div style={{ textAlign: 'center', marginTop: '50px' }}>
-      <h1>Trang chủ - Quản lý Đặt bàn Nhà hàng</h1>
-      <p>Đây là trang dành cho khách hàng đặt bàn trực tuyến.</p>
-    </div>
-  );
-}
-
-function AdminDashboard() {
-  return (
-    <div>
-      <h2>Chào mừng đến với trang quản trị</h2>
-      <p>Chọn chức năng từ menu bên trái để bắt đầu.</p>
-    </div>
-  );
-}
+import Home from './pages/customer/Home';
+import Dashboard from './pages/admin/Dashboard';
+import ShiftManagement from './pages/admin/ShiftManagement';
+import Analytics from './pages/admin/Analytics';
 
 function App() {
   return (
@@ -36,12 +22,14 @@ function App() {
         {/* Protected Routes for Admin/Staff */}
         <Route path="/admin" element={<ProtectedRoute />}>
           <Route element={<AdminLayout />}>
-            <Route index element={<AdminDashboard />} />
+            <Route index element={<Dashboard />} />
             <Route path="pos" element={<POSManagement />} />
+            <Route path="bookings" element={<BookingManagement />} />
             <Route path="tables" element={<TableManagement />} />
             <Route path="menu" element={<MenuManagement />} />
             <Route path="vouchers" element={<VoucherManagement />} />
-            <Route path="bookings" element={<BookingManagement />} />
+            <Route path="shifts" element={<ShiftManagement />} />
+            <Route path="analytics" element={<Analytics />} />
           </Route>
         </Route>
       </Routes>
