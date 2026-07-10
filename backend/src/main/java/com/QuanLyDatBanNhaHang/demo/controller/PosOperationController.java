@@ -31,4 +31,11 @@ public class PosOperationController {
     public ResponseEntity<ApiResponse<HoaDonResponseDTO>> themMon(@Valid @RequestBody PosThemMonRequestDTO request) {
         return ResponseEntity.ok(ApiResponse.success(posOperationService.themMon(request)));
     }
+
+    @PostMapping("/thanh-toan/{hoaDonId}")
+    public ResponseEntity<ApiResponse<HoaDonResponseDTO>> thanhToan(
+            @PathVariable Long hoaDonId,
+            @Valid @RequestBody com.QuanLyDatBanNhaHang.demo.dto.request.PosThanhToanRequestDTO request) {
+        return ResponseEntity.ok(ApiResponse.success(posOperationService.thanhToanHoaDon(hoaDonId, request)));
+    }
 }

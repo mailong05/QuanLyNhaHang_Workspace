@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Row, Col, Card, message, Typography, Badge, Button, Table, Modal, Space, Image, InputNumber } from 'antd';
+import { Row, Col, Card, message, Typography, Badge, Button, Table, Modal, Space, Image, InputNumber, Radio } from 'antd';
 import { PlusOutlined, DollarOutlined, CoffeeOutlined } from '@ant-design/icons';
 import apiClient from '../../services/apiClient';
 import './POSManagement.css';
@@ -20,6 +20,12 @@ const POSManagement = () => {
   const [isMenuModalVisible, setIsMenuModalVisible] = useState(false);
   const [menuList, setMenuList] = useState([]);
   const [loadingMenu, setLoadingMenu] = useState(false);
+
+  // State cho Checkout Modal
+  const [isCheckoutModalVisible, setIsCheckoutModalVisible] = useState(false);
+  const [checkoutMethod, setCheckoutMethod] = useState('TIEN_MAT');
+  const [amountGiven, setAmountGiven] = useState(0);
+  const [loadingCheckout, setLoadingCheckout] = useState(false);
 
   const fetchTables = async () => {
     setLoading(true);
@@ -144,13 +150,36 @@ const POSManagement = () => {
     }
   };
 
+  const showCheckoutModal = () => {
+    setIsCheckoutModalVisible(true);
+    setCheckoutMethod('TIEN_MAT');
+    setAmountGiven(0);
+  };
+
+  const handleCheckout = async () => {
+    setLoadingCheckout(true);
+    try {
+      await apiClient.post(`/api/v1/pos/thanh-toan/${currentOrder.id}`, { phuongThucTT: checkoutMethod });
+      message.success('Thanh toán thành công!');
+      setIsCheckoutModalVisible(false);
+      setSelectedTable(null);
+      setCurrentOrder(null);
+      setOrderItems([]);
+      fetchTables();
+    } catch (error) {
+      message.error(error.message || 'Lỗi khi thanh toán');
+    } finally {
+      setLoadingCheckout(false);
+    }
+  };
+
   // --- RENDER COLUMNS ---
 
   const orderColumns = [
     { title: 'Tên món', dataIndex: 'tenMon', key: 'tenMon' },
     { title: 'SL', dataIndex: 'soLuong', key: 'soLuong', width: 60, align: 'center' },
-    { title: 'Đơn giá', dataIndex: 'donGia', key: 'donGia', render: (val) => val?.toLocaleString('vi-VN') },
-    { title: 'Thành tiền', key: 'thanhTien', render: (_, record) => (record.soLuong * record.donGia)?.toLocaleString('vi-VN') },
+    { title: 'Đơn giá', dataIndex: 'donGia', key: 'donGia', render: (val) => (val || 0).toLocaleString('vi-VN') },
+    { title: 'Thành tiền', key: 'thanhTien', render: (_, record) => (record.soLuong * (record.donGia || 0)).toLocaleString('vi-VN') },
   ];
 
   const menuColumns = [
@@ -181,7 +210,7 @@ const POSManagement = () => {
 
   // Tính tổng tiền an toàn
   const calculateTotal = () => {
-    return orderItems.reduce((acc, item) => acc + (item.soLuong * item.donGia), 0);
+    return orderItems.reduce((acc, item) => acc + (item.soLuong * (item.donGia || 0)), 0);
   };
 
   return (
@@ -294,6 +323,7 @@ const POSManagement = () => {
                         block 
                         style={{ backgroundColor: '#52c41a', borderColor: '#52c41a', height: '50px', fontSize: '16px' }}
                         disabled={orderItems.length === 0}
+                        onClick={showCheckoutModal}
                       >
                         Thanh Toán
                       </Button>
@@ -335,6 +365,76 @@ const POSManagement = () => {
           pagination={{ pageSize: 5 }}
           size="small"
         />
+      </Modal>
+
+      {/* Modal Thanh toán */}
+      <Modal
+        title="Thanh Toán Hóa Đơn"
+        open={isCheckoutModalVisible}
+        onCancel={() => setIsCheckoutModalVisible(false)}
+        footer={[
+          <Button key="back" onClick={() => setIsCheckoutModalVisible(false)}>
+            Hủy
+          </Button>,
+          <Button 
+            key="submit" 
+            type="primary" 
+            loading={loadingCheckout} 
+            onClick={handleCheckout}
+            disabled={checkoutMethod === 'TIEN_MAT' && amountGiven < calculateTotal()}
+            style={{ backgroundColor: '#52c41a', borderColor: '#52c41a' }}
+          >
+            Xác nhận thanh toán
+          </Button>,
+        ]}
+      >
+        <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+          <Text style={{ fontSize: '18px' }}>Tổng tiền cần thanh toán</Text>
+          <br/>
+          <Text strong type="danger" style={{ fontSize: '32px' }}>
+            {calculateTotal().toLocaleString('vi-VN')} đ
+          </Text>
+        </div>
+
+        <div style={{ marginBottom: '16px' }}>
+          <Text strong>Phương thức thanh toán:</Text>
+          <br/>
+          <Radio.Group 
+            value={checkoutMethod} 
+            onChange={(e) => setCheckoutMethod(e.target.value)} 
+            style={{ marginTop: '8px' }}
+          >
+            <Radio.Button value="TIEN_MAT">Tiền mặt</Radio.Button>
+            <Radio.Button value="CHUYEN_KHOAN">Chuyển khoản</Radio.Button>
+          </Radio.Group>
+        </div>
+
+        {checkoutMethod === 'TIEN_MAT' && (
+          <>
+            <div style={{ marginBottom: '16px' }}>
+              <Text strong>Tiền khách đưa:</Text>
+              <br/>
+              <InputNumber 
+                style={{ width: '100%', marginTop: '8px', fontSize: '18px' }} 
+                size="large"
+                formatter={value => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                parser={value => value.replace(/\$\s?|(,*)/g, '')}
+                value={amountGiven}
+                onChange={setAmountGiven}
+                min={0}
+              />
+            </div>
+            
+            <div style={{ padding: '16px', background: '#f5f5f5', borderRadius: '8px' }}>
+              <Row justify="space-between" align="middle">
+                <Text strong style={{ fontSize: '16px' }}>Tiền thừa trả khách:</Text>
+                <Text strong type="danger" style={{ fontSize: '20px' }}>
+                  {Math.max(0, amountGiven - calculateTotal()).toLocaleString('vi-VN')} đ
+                </Text>
+              </Row>
+            </div>
+          </>
+        )}
       </Modal>
     </div>
   );
