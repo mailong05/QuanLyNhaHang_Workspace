@@ -16,6 +16,7 @@ public class ChiTietHoaDonResponseDTO {
     private String maMon;
     private String tenMon;
     private Integer soLuong;
+    private Double donGia;
     private Double donGiaLuuTru;
     private String ghiChu;
     private Double thanhTien;

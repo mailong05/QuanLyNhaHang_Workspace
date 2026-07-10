@@ -194,6 +194,54 @@ public class PosOperationServiceImpl implements PosOperationService {
         return mapToDTO(hoaDon);
     }
 
+    @Override
+    @Transactional
+    public HoaDonResponseDTO thanhToanHoaDon(Long hoaDonId, com.QuanLyDatBanNhaHang.demo.dto.request.PosThanhToanRequestDTO request) {
+        HoaDon hoaDon = hoaDonRepository.findById(hoaDonId)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy Hóa đơn"));
+
+        if (hoaDon.getTrangThaiThanhToan() == TrangThaiThanhToanHoaDon.DA_THANH_TOAN) {
+            throw new IllegalArgumentException("Hóa đơn này đã được thanh toán");
+        }
+
+        // Tính toán lại
+        final Long currentHoaDonId = hoaDon.getId();
+        List<ChiTietHoaDon> allChiTiet = chiTietHoaDonRepository.findAll().stream()
+                .filter(ct -> ct.getHoaDon().getId().equals(currentHoaDonId))
+                .toList();
+
+        double tongTienGoc = allChiTiet.stream().mapToDouble(ChiTietHoaDon::getThanhTien).sum();
+        double tienThue = tongTienGoc * (hoaDon.getThueSuat() != null ? hoaDon.getThueSuat() / 100 : 0);
+        double tongThanhToan = tongTienGoc + tienThue - (hoaDon.getTienGiamGia() != null ? hoaDon.getTienGiamGia() : 0);
+
+        hoaDon.setTongTienGoc(tongTienGoc);
+        hoaDon.setTienThue(tienThue);
+        hoaDon.setTongThanhToan(tongThanhToan);
+        hoaDon.setTrangThaiThanhToan(TrangThaiThanhToanHoaDon.DA_THANH_TOAN);
+        hoaDon.setPhuongThucTT(request.getPhuongThucTT());
+        hoaDon.setGioRa(LocalTime.now());
+
+        hoaDon = hoaDonRepository.save(hoaDon);
+
+        PhieuDatBan phieuDatBan = hoaDon.getPhieuDatBan();
+        if (phieuDatBan != null) {
+            phieuDatBan.setTrangThai(TrangThaiPhieuDatBan.HOAN_TAT);
+            phieuDatBanRepository.save(phieuDatBan);
+
+            List<ChiTietPhieuDatBan> listBan = chiTietPhieuDatBanRepository.findAll().stream()
+                    .filter(ct -> ct.getPhieuDatBan().getId().equals(phieuDatBan.getId()))
+                    .toList();
+            for (ChiTietPhieuDatBan ct : listBan) {
+                BanAn banAn = ct.getBanAn();
+                if (banAn != null) {
+                    banAn.setTrangThai(TrangThaiBanAn.TRONG);
+                    banAnRepository.save(banAn);
+                }
+            }
+        }
+
+        return mapToDTO(hoaDon);
+    }
     private HoaDonResponseDTO mapToDTO(HoaDon hd) {
         List<com.QuanLyDatBanNhaHang.demo.dto.response.ChiTietHoaDonResponseDTO> chiTiets = new ArrayList<>();
         if (hd.getChiTietHoaDons() != null) {
@@ -202,6 +250,7 @@ public class PosOperationServiceImpl implements PosOperationService {
                     .maMon(ct.getMonAn() != null ? ct.getMonAn().getMaMon() : null)
                     .tenMon(ct.getMonAn() != null ? ct.getMonAn().getTenMon() : null)
                     .soLuong(ct.getSoLuong())
+                    .donGia(ct.getDonGiaLuuTru() != null ? ct.getDonGiaLuuTru() : 0)
                     .donGiaLuuTru(ct.getDonGiaLuuTru() != null ? ct.getDonGiaLuuTru() : 0)
                     .thanhTien(ct.getThanhTien())
                     .ghiChu(ct.getGhiChu())
