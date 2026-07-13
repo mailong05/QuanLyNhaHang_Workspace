@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Row, Col, Card, message, Typography, Badge, Button, Table, Modal, Space, Image, InputNumber, Radio } from 'antd';
-import { PlusOutlined, DollarOutlined, CoffeeOutlined } from '@ant-design/icons';
+import { Row, Col, Card, message, Typography, Badge, Button, Table, Modal, Space, Image, InputNumber, Radio, Form, Input, DatePicker } from 'antd';
+import { PlusOutlined, DollarOutlined, CoffeeOutlined, CalendarOutlined } from '@ant-design/icons';
 import apiClient from '../../services/apiClient';
 import './POSManagement.css';
 
@@ -26,6 +26,10 @@ const POSManagement = () => {
   const [checkoutMethod, setCheckoutMethod] = useState('TIEN_MAT');
   const [amountGiven, setAmountGiven] = useState(0);
   const [loadingCheckout, setLoadingCheckout] = useState(false);
+
+  // State cho Đặt Bàn Trước Modal
+  const [isReservationModalVisible, setIsReservationModalVisible] = useState(false);
+  const [formReservation] = Form.useForm();
 
   const fetchTables = async () => {
     setLoading(true);
@@ -173,6 +177,25 @@ const POSManagement = () => {
     }
   };
 
+  // --- ACTIONS CHO ĐẶT BÀN (MOCK) ---
+  const handleReservation = () => {
+    formReservation.validateFields().then(values => {
+      message.success(`Đã nhận đặt bàn thành công cho khách ${values.hoTen}!`);
+      setIsReservationModalVisible(false);
+      formReservation.resetFields();
+      
+      // Đổi trạng thái table thành DAT_TRUOC (Mock UI)
+      setTables(prevTables => prevTables.map(t => {
+        if (t.id === selectedTable.id) {
+          const updatedTable = { ...t, trangThai: 'DAT_TRUOC' };
+          setSelectedTable(updatedTable);
+          return updatedTable;
+        }
+        return t;
+      }));
+    });
+  };
+
   // --- RENDER COLUMNS ---
 
   const orderColumns = [
@@ -285,15 +308,24 @@ const POSManagement = () => {
 
                 {/* Xử lý render UI tùy theo trạng thái của bàn */}
                 {selectedTable.trangThai === 'TRONG' ? (
-                  <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '16px' }}>
                     <Button 
                       type="primary" 
                       size="large" 
                       icon={<CoffeeOutlined />} 
-                      style={{ height: '60px', fontSize: '18px', borderRadius: '8px' }}
+                      style={{ height: '60px', width: '250px', fontSize: '18px', borderRadius: '8px', backgroundColor: '#52c41a', borderColor: '#52c41a' }}
                       onClick={handleOpenTable}
                     >
-                      Mở Bàn / Phục Vụ
+                      Phục Vụ Ngay
+                    </Button>
+                    <Button 
+                      type="default" 
+                      size="large" 
+                      icon={<CalendarOutlined />} 
+                      style={{ height: '60px', width: '250px', fontSize: '18px', borderRadius: '8px' }}
+                      onClick={() => setIsReservationModalVisible(true)}
+                    >
+                      Nhận Đặt Bàn Trước
                     </Button>
                   </div>
                 ) : selectedTable.trangThai === 'DANG_SUDUNG' ? (
@@ -435,6 +467,35 @@ const POSManagement = () => {
             </div>
           </>
         )}
+      </Modal>
+
+      {/* Modal Đặt Bàn Trước */}
+      <Modal
+        title={`Nhận Đặt Bàn Trước - Bàn ${selectedTable?.maBan || ''}`}
+        open={isReservationModalVisible}
+        onCancel={() => setIsReservationModalVisible(false)}
+        onOk={handleReservation}
+        okText="Xác nhận Đặt Bàn"
+        cancelText="Hủy"
+        destroyOnClose
+      >
+        <Form form={formReservation} layout="vertical" style={{ marginTop: '16px' }}>
+          <Form.Item name="hoTen" label="Tên khách hàng" rules={[{ required: true, message: 'Vui lòng nhập tên khách hàng!' }]}>
+            <Input placeholder="Nhập tên khách hàng" />
+          </Form.Item>
+          <Form.Item name="sdt" label="Số điện thoại" rules={[{ required: true, message: 'Vui lòng nhập số điện thoại!' }]}>
+            <Input placeholder="Nhập số điện thoại liên hệ" />
+          </Form.Item>
+          <Form.Item name="thoiGianDen" label="Thời gian đến" rules={[{ required: true, message: 'Vui lòng chọn thời gian đến!' }]}>
+            <DatePicker showTime format="DD/MM/YYYY HH:mm" style={{ width: '100%' }} placeholder="Chọn ngày và giờ" />
+          </Form.Item>
+          <Form.Item name="soLuongNguoi" label="Số lượng người" rules={[{ required: true, message: 'Vui lòng nhập số lượng người!' }]}>
+            <InputNumber min={1} style={{ width: '100%' }} placeholder="Nhập số lượng người" />
+          </Form.Item>
+          <Form.Item name="ghiChu" label="Ghi chú thêm">
+            <Input.TextArea rows={3} placeholder="Ví dụ: Cần ghế trẻ em, dị ứng hải sản..." />
+          </Form.Item>
+        </Form>
       </Modal>
     </div>
   );
