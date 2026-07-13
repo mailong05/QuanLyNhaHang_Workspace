@@ -436,6 +436,44 @@ const POSManagement = () => {
           </>
         )}
       </Modal>
+
+      {/* Modal Đặt Bàn Trước */}
+      <Modal
+        title={`Nhận Đặt Bàn Trước - Bàn ${selectedTable?.maBan || ''}`}
+        open={isReservationModalVisible}
+        onCancel={() => setIsReservationModalVisible(false)}
+        onOk={handleReservation}
+        okText="Xác nhận Đặt Bàn"
+        cancelText="Hủy"
+        destroyOnClose
+      >
+        <Form form={formReservation} layout="vertical" style={{ marginTop: '16px' }}>
+          <Form.Item name="hoTen" label="Tên khách hàng" rules={[{ required: true, message: 'Vui lòng nhập tên khách hàng!' }]}>
+            <Input placeholder="Nhập tên khách hàng" />
+          </Form.Item>
+          <Form.Item name="sdt" label="Số điện thoại" rules={[{ required: true, message: 'Vui lòng nhập số điện thoại!' }]}>
+            <Input placeholder="Nhập số điện thoại liên hệ" />
+          </Form.Item>
+          <Form.Item name="thoiGianDen" label="Thời gian đến" rules={[{ required: true, message: 'Vui lòng chọn thời gian đến!' }]}>
+            <DatePicker showTime format="DD/MM/YYYY HH:mm" style={{ width: '100%' }} placeholder="Chọn ngày và giờ" />
+          </Form.Item>
+          <Form.Item name="soLuongNguoi" label="Số lượng người" rules={[{ required: true, message: 'Vui lòng nhập số lượng người!' }]}>
+            <InputNumber min={1} style={{ width: '100%' }} placeholder="Nhập số lượng người" />
+          </Form.Item>
+          <Form.Item name="tienDatCoc" label="Tiền cọc (VNĐ)">
+            <InputNumber 
+              min={0} 
+              style={{ width: '100%' }} 
+              placeholder="Nhập số tiền khách cọc (nếu có)" 
+              formatter={value => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+              parser={value => value.replace(/\$\s?|(,*)/g, '')}
+            />
+          </Form.Item>
+          <Form.Item name="ghiChu" label="Ghi chú thêm">
+            <Input.TextArea rows={3} placeholder="Ví dụ: Cần ghế trẻ em, dị ứng hải sản..." />
+          </Form.Item>
+        </Form>
+      </Modal>
     </div>
   );
 };

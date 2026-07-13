@@ -7,7 +7,11 @@ import MenuManagement from './pages/admin/MenuManagement';
 import VoucherManagement from './pages/admin/VoucherManagement';
 import BookingManagement from './pages/admin/BookingManagement';
 import POSManagement from './pages/admin/POSManagement';
+import CustomerLayout from './layouts/CustomerLayout';
 import Home from './pages/customer/Home';
+import Profile from './pages/customer/Profile';
+import MyBookings from './pages/customer/MyBookings';
+import Register from './pages/auth/Register';
 import Dashboard from './pages/admin/Dashboard';
 import ShiftManagement from './pages/admin/ShiftManagement';
 import Analytics from './pages/admin/Analytics';
@@ -16,8 +20,16 @@ function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<Home />} />
+        {/* Customer Routes */}
+        <Route element={<CustomerLayout />}>
+          <Route path="/" element={<Home />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/my-bookings" element={<MyBookings />} />
+        </Route>
+        
+        {/* Auth Routes */}
         <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
         
         {/* Protected Routes for Admin/Staff */}
         <Route path="/admin" element={<ProtectedRoute />}>
