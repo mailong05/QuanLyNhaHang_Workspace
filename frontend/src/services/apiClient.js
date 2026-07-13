@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { message } from 'antd';
 
 const apiClient = axios.create({
   baseURL: 'http://localhost:8080',
@@ -38,7 +39,11 @@ apiClient.interceptors.response.use(
     if (code === 401) {
       // Chưa xác thực
       console.error('Lỗi 401: Chưa xác thực hoặc Token hết hạn!');
-      // Có thể dispatch action logout hoặc redirect về trang Login ở đây
+      localStorage.removeItem('accessToken');
+      if (window.location.pathname !== '/login') {
+        message.error("Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!");
+        window.location.href = '/login';
+      }
     } else if (code === 403) {
       // Không có quyền
       console.error('Lỗi 403: Bạn không có quyền truy cập tài nguyên này!');
