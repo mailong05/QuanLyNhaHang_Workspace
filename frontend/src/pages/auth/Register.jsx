@@ -121,7 +121,7 @@ const Register = () => {
           </Form.Item>
           
           <div style={{ textAlign: 'center' }}>
-            <Text>Đã có tài khoản? <Link to="/login">Đăng nhập ngay</Link></Text>
+            <Text>Bạn đã có tài khoản? <Link to="/login">Đăng nhập ngay</Link></Text>
           </div>
         </Form>
       </Card>

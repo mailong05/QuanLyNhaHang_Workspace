@@ -55,10 +55,7 @@ const CustomerLayout = () => {
           <Divider type="vertical" style={{ height: '24px', margin: '0' }} />
 
           {!isLoggedIn ? (
-            <Space>
-              <Button type="text" onClick={() => navigate('/login')} style={{ fontSize: '16px' }}>Đăng Nhập</Button>
-              <Button type="primary" onClick={() => navigate('/register')} style={{ fontSize: '16px' }}>Đăng Ký</Button>
-            </Space>
+            <Button type="primary" onClick={() => navigate('/login')} style={{ fontSize: '16px' }}>Đăng Nhập</Button>
           ) : (
             <Dropdown menu={{ items: userMenuItems }} placement="bottomRight" trigger={['click']}>
               <div style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
