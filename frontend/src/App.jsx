@@ -8,6 +8,7 @@ import VoucherManagement from './pages/admin/VoucherManagement';
 import BookingManagement from './pages/admin/BookingManagement';
 import POSManagement from './pages/admin/POSManagement';
 import Home from './pages/customer/Home';
+import Menu from './pages/customer/Menu';
 import Dashboard from './pages/admin/Dashboard';
 import ShiftManagement from './pages/admin/ShiftManagement';
 import Analytics from './pages/admin/Analytics';
@@ -17,6 +18,7 @@ function App() {
     <Router>
       <Routes>
         <Route path="/" element={<Home />} />
+        <Route path="/menu" element={<Menu />} />
         <Route path="/login" element={<Login />} />
         
         {/* Protected Routes for Admin/Staff */}
