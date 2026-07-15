@@ -54,28 +54,8 @@ const Home = () => {
   ];
 
   return (
-    <Layout style={{ minHeight: '100vh' }}>
-      <Header style={{ background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 50px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)', zIndex: 1 }}>
-        <div style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }} onClick={() => navigate('/')}>
-          <FireOutlined style={{ fontSize: '28px', color: '#fa8c16', marginRight: '10px' }} />
-          <Title level={3} style={{ margin: 0, color: '#fa8c16' }}>Grand Restaurant</Title>
-        </div>
-
-        <AntMenu 
-          mode="horizontal" 
-          selectedKeys={[location.pathname]} 
-          items={headerMenuItems}
-          onClick={({ key }) => navigate(key)}
-          style={{ borderBottom: 'none', flex: 1, justifyContent: 'center', fontSize: '16px' }}
-        />
-
-        <div>
-          <Button type="primary" size="large" icon={<CalendarOutlined />} href="#booking">Đặt Bàn Ngay</Button>
-        </div>
-      </Header>
-
-      <Content>
-        {/* Hero Section */}
+    <div>
+      {/* Hero Section */}
         <div style={{ 
           background: 'linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url(https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?ixlib=rb-1.2.1&auto=format&fit=crop&w=1920&q=80) center/cover', 
           height: '600px', 
@@ -192,12 +172,7 @@ const Home = () => {
               </Card>
             </Col>
           </Row>
-        </div>
-      </Content>
-
-      <Footer style={{ textAlign: 'center', background: '#001529', color: 'white', padding: '24px 50px' }}>
-        Grand Restaurant ©{new Date().getFullYear()} Created by Tech Lead
-      </Footer>
+      </div>
 
       {/* QR Code Payment Modal */}
       <Modal
@@ -238,7 +213,7 @@ const Home = () => {
           </Button>
         </div>
       </Modal>
-    </Layout>
+    </div>
   );
 };
 

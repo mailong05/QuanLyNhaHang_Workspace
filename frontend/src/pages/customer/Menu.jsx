@@ -55,27 +55,8 @@ const Menu = () => {
   ];
 
   return (
-    <Layout style={{ minHeight: '100vh' }}>
-      <Header style={{ background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 50px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)', zIndex: 1 }}>
-        <div style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }} onClick={() => navigate('/')}>
-          <FireOutlined style={{ fontSize: '28px', color: '#fa8c16', marginRight: '10px' }} />
-          <Title level={3} style={{ margin: 0, color: '#fa8c16' }}>Grand Restaurant</Title>
-        </div>
-        
-        <AntMenu 
-          mode="horizontal" 
-          selectedKeys={[location.pathname]} 
-          items={headerMenuItems}
-          onClick={({ key }) => navigate(key)}
-          style={{ borderBottom: 'none', flex: 1, justifyContent: 'center', fontSize: '16px' }}
-        />
-
-        <div>
-          <Button type="primary" size="large" icon={<CalendarOutlined />} onClick={() => navigate('/#booking')}>Đặt Bàn Ngay</Button>
-        </div>
-      </Header>
-
-      <Content style={{ padding: '40px 50px', background: '#f5f5f5' }}>
+    <div>
+      <div style={{ padding: '40px 50px', background: '#f5f5f5' }}>
         <div style={{ textAlign: 'center', marginBottom: '24px' }}>
           <Title level={2}>Thực Đơn Của Chúng Tôi</Title>
           <Text type="secondary">Khám phá tinh hoa ẩm thực qua từng món ăn</Text>
@@ -125,11 +106,8 @@ const Menu = () => {
             </Col>
           ))}
         </Row>
-      </Content>
-      <Footer style={{ textAlign: 'center', background: '#001529', color: 'white', padding: '24px 50px' }}>
-        Grand Restaurant ©{new Date().getFullYear()} Created by Tech Lead
-      </Footer>
-    </Layout>
+      </div>
+    </div>
   );
 };
 

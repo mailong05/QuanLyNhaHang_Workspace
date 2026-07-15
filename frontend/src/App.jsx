@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Login from './pages/Login';
 import ProtectedRoute from './components/ProtectedRoute';
 import AdminLayout from './layouts/AdminLayout';
+import CustomerLayout from './layouts/CustomerLayout';
 import TableManagement from './pages/admin/TableManagement';
 import MenuManagement from './pages/admin/MenuManagement';
 import VoucherManagement from './pages/admin/VoucherManagement';
@@ -17,8 +18,12 @@ function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/menu" element={<Menu />} />
+        {/* Customer Routes */}
+        <Route element={<CustomerLayout />}>
+          <Route path="/" element={<Home />} />
+          <Route path="/menu" element={<Menu />} />
+        </Route>
+        
         <Route path="/login" element={<Login />} />
         
         {/* Protected Routes for Admin/Staff */}
