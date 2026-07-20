@@ -1,6 +1,4 @@
 import React, { useState } from 'react';
-import { Typography, Row, Col, Card, Form, Input, DatePicker, TimePicker, InputNumber, Button, message } from 'antd';
-import { CalendarOutlined } from '@ant-design/icons';
 import { Layout, Typography, Row, Col, Card, Form, Input, DatePicker, TimePicker, InputNumber, Button, message, Modal, Image, Menu as AntMenu } from 'antd';
 import { CalendarOutlined, CheckCircleOutlined, FireOutlined, HomeOutlined, CoffeeOutlined } from '@ant-design/icons';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -103,23 +101,6 @@ const Home = () => {
             <Button size="large" onClick={() => navigate('/menu')}>Xem toàn bộ Thực Đơn</Button>
           </div>
         </div>
-        <Row gutter={[24, 24]}>
-          {mockMenu.map(item => (
-            <Col xs={24} sm={12} md={8} key={item.id}>
-              <Card
-                hoverable
-                cover={<img alt={item.name} src={item.img} style={{ height: '250px', objectFit: 'cover' }} />}
-                style={{ borderRadius: '12px', overflow: 'hidden' }}
-              >
-                <Card.Meta 
-                  title={<span style={{ fontSize: '18px' }}>{item.name}</span>} 
-                  description={<Text type="danger" strong style={{ fontSize: '16px' }}>{item.price.toLocaleString('vi-VN')} đ</Text>} 
-                />
-              </Card>
-            </Col>
-          ))}
-        </Row>
-      </div>
 
         {/* Booking Form Section */}
         <div id="booking" style={{ padding: '60px 50px', background: '#fff' }}>
