@@ -9,11 +9,9 @@ import MenuManagement from './pages/admin/MenuManagement';
 import VoucherManagement from './pages/admin/VoucherManagement';
 import BookingManagement from './pages/admin/BookingManagement';
 import POSManagement from './pages/admin/POSManagement';
-import CustomerLayout from './layouts/CustomerLayout';
 import Home from './pages/customer/Home';
 import Profile from './pages/customer/Profile';
 import MyBookings from './pages/customer/MyBookings';
-import Register from './pages/auth/Register';
 import Menu from './pages/customer/Menu';
 import Dashboard from './pages/admin/Dashboard';
 import ShiftManagement from './pages/admin/ShiftManagement';
@@ -33,7 +31,7 @@ function App() {
         <Route path="/register" element={<Register />} />
         
         {/* Protected Routes for Admin/Staff */}
-        <Route path="/admin" element={<ProtectedRoute allowedRoles={['ROLE_ADMIN', 'ROLE_STAFF', 'ADMIN', 'STAFF']} />}>
+        <Route path="/admin" element={<ProtectedRoute allowedRoles={['ROLE_ADMIN', 'ROLE_STAFF', 'ADMIN', 'STAFF', 'NHAN_VIEN', 'QUAN_LY']} />}>
           <Route element={<AdminLayout />}>
             <Route index element={<Dashboard />} />
             <Route path="pos" element={<POSManagement />} />
