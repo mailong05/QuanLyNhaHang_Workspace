@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Form, Input, Button, Card, message } from 'antd';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
 import { useNavigate, Link } from 'react-router-dom';
@@ -8,6 +8,19 @@ import apiClient from '../services/apiClient';
 const Login = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+
+  // Kiểm tra nếu đã đăng nhập thì đá văng ra khỏi trang Login
+  useEffect(() => {
+    const token = localStorage.getItem('accessToken');
+    if (token) {
+      const role = localStorage.getItem('role');
+      if (['ROLE_ADMIN', 'ROLE_STAFF', 'ADMIN', 'STAFF', 'NHAN_VIEN', 'QUAN_LY'].includes(role)) {
+        navigate('/admin');
+      } else {
+        navigate('/');
+      }
+    }
+  }, [navigate]);
 
   const onFinish = async (values) => {
     setLoading(true);
@@ -30,7 +43,7 @@ const Login = () => {
       // Điều hướng dựa trên role
       if (role === 'ROLE_CUSTOMER' || role === 'CUSTOMER') {
         navigate('/');
-      } else if (['ROLE_ADMIN', 'ROLE_STAFF', 'ADMIN', 'STAFF'].includes(role)) {
+      } else if (['ROLE_ADMIN', 'ROLE_STAFF', 'ADMIN', 'STAFF', 'NHAN_VIEN', 'QUAN_LY'].includes(role)) {
         navigate('/admin');
       } else {
         navigate('/');
