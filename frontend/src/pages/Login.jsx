@@ -18,14 +18,23 @@ const Login = () => {
         password: values.password,
       });
       
+      // Giả định backend trả về token và role, hoặc fallback
+      const role = data.role || 'ROLE_CUSTOMER'; // Nếu không có, gán mặc định là CUSTOMER
+      
       // Lưu token và role vào localStorage
       localStorage.setItem('accessToken', data.accessToken);
-      localStorage.setItem('role', data.role || 'ADMIN'); // Giả định có data.role, mặc định ADMIN để không sụp đổ lúc test
+      localStorage.setItem('role', role);
       
       message.success('Đăng nhập thành công!');
       
-      // Chuyển hướng sang trang Admin
-      navigate('/admin');
+      // Điều hướng dựa trên role
+      if (role === 'ROLE_CUSTOMER' || role === 'CUSTOMER') {
+        navigate('/');
+      } else if (['ROLE_ADMIN', 'ROLE_STAFF', 'ADMIN', 'STAFF'].includes(role)) {
+        navigate('/admin');
+      } else {
+        navigate('/');
+      }
     } catch (error) {
       // Hiển thị thông báo lỗi từ Backend
       message.error(error.message || 'Đăng nhập thất bại, vui lòng kiểm tra lại thông tin.');
