@@ -1,9 +1,3 @@
-import React from 'react';
-import { Layout, Menu, Dropdown, Button, Avatar } from 'antd';
-import { FireOutlined, UserOutlined, HistoryOutlined, LogoutOutlined, HomeOutlined, CoffeeOutlined } from '@ant-design/icons';
-import { Outlet, useNavigate, useLocation, Link } from 'react-router-dom';
-
-const { Header, Content, Footer } = Layout;
 import React, { useState, useEffect } from 'react';
 import { Layout, Typography, Button, Divider, Dropdown, Avatar, Space } from 'antd';
 import { FireOutlined, UserOutlined, HistoryOutlined, LogoutOutlined } from '@ant-design/icons';
