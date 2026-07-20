@@ -31,7 +31,7 @@ function App() {
         <Route path="/register" element={<Register />} />
         
         {/* Protected Routes for Admin/Staff */}
-        <Route path="/admin" element={<ProtectedRoute allowedRoles={['ROLE_ADMIN', 'ROLE_STAFF', 'ADMIN', 'STAFF']} />}>
+        <Route path="/admin" element={<ProtectedRoute allowedRoles={['ROLE_ADMIN', 'ROLE_STAFF', 'ADMIN', 'STAFF', 'NHAN_VIEN', 'QUAN_LY']} />}>
           <Route element={<AdminLayout />}>
             <Route index element={<Dashboard />} />
             <Route path="pos" element={<POSManagement />} />

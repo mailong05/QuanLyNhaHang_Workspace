@@ -15,7 +15,7 @@ const CustomerLayout = () => {
 
   // Auto detect if token exists to flip mock state for testing purposes
   useEffect(() => {
-    if (localStorage.getItem('accessToken') && localStorage.getItem('role') === 'KHACH_HANG') {
+    if (localStorage.getItem('accessToken')) {
         setIsLoggedIn(true);
     }
   }, []);
