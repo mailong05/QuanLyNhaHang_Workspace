@@ -20,7 +20,7 @@ function App() {
         <Route path="/login" element={<Login />} />
         
         {/* Protected Routes for Admin/Staff */}
-        <Route path="/admin" element={<ProtectedRoute />}>
+        <Route path="/admin" element={<ProtectedRoute allowedRoles={['ROLE_ADMIN', 'ROLE_STAFF', 'ADMIN', 'STAFF']} />}>
           <Route element={<AdminLayout />}>
             <Route index element={<Dashboard />} />
             <Route path="pos" element={<POSManagement />} />
@@ -28,8 +28,12 @@ function App() {
             <Route path="tables" element={<TableManagement />} />
             <Route path="menu" element={<MenuManagement />} />
             <Route path="vouchers" element={<VoucherManagement />} />
-            <Route path="shifts" element={<ShiftManagement />} />
-            <Route path="analytics" element={<Analytics />} />
+            
+            {/* Dành riêng cho ADMIN */}
+            <Route element={<ProtectedRoute allowedRoles={['ROLE_ADMIN', 'ADMIN']} />}>
+              <Route path="shifts" element={<ShiftManagement />} />
+              <Route path="analytics" element={<Analytics />} />
+            </Route>
           </Route>
         </Route>
       </Routes>
