@@ -1,7 +1,9 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Login from './pages/Login';
+import Register from './pages/auth/Register';
 import ProtectedRoute from './components/ProtectedRoute';
 import AdminLayout from './layouts/AdminLayout';
+import CustomerLayout from './layouts/CustomerLayout';
 import TableManagement from './pages/admin/TableManagement';
 import MenuManagement from './pages/admin/MenuManagement';
 import VoucherManagement from './pages/admin/VoucherManagement';
@@ -12,6 +14,7 @@ import Home from './pages/customer/Home';
 import Profile from './pages/customer/Profile';
 import MyBookings from './pages/customer/MyBookings';
 import Register from './pages/auth/Register';
+import Menu from './pages/customer/Menu';
 import Dashboard from './pages/admin/Dashboard';
 import ShiftManagement from './pages/admin/ShiftManagement';
 import Analytics from './pages/admin/Analytics';
@@ -23,11 +26,9 @@ function App() {
         {/* Customer Routes */}
         <Route element={<CustomerLayout />}>
           <Route path="/" element={<Home />} />
-          <Route path="/profile" element={<Profile />} />
-          <Route path="/my-bookings" element={<MyBookings />} />
+          <Route path="/menu" element={<Menu />} />
         </Route>
         
-        {/* Auth Routes */}
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         

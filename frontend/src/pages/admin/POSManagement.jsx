@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Row, Col, Card, message, Typography, Badge, Button, Table, Modal, Space, Image, InputNumber, Radio } from 'antd';
-import { PlusOutlined, DollarOutlined, CoffeeOutlined } from '@ant-design/icons';
+import { Row, Col, Card, message, Typography, Badge, Button, Table, Modal, Space, Image, InputNumber, Radio, Form, Input, DatePicker, Tabs } from 'antd';
+import { PlusOutlined, DollarOutlined, CoffeeOutlined, CalendarOutlined } from '@ant-design/icons';
 import apiClient from '../../services/apiClient';
 import './POSManagement.css';
 
@@ -10,6 +10,10 @@ const POSManagement = () => {
   const [tables, setTables] = useState([]);
   const [loading, setLoading] = useState(false);
   const [selectedTable, setSelectedTable] = useState(null);
+
+  // State cho Sơ đồ bàn
+  const [filterStatus, setFilterStatus] = useState('ALL');
+  const [filterArea, setFilterArea] = useState('TANG_TRET');
 
   // State cho Khu vực Order
   const [currentOrder, setCurrentOrder] = useState(null);
@@ -27,11 +31,18 @@ const POSManagement = () => {
   const [amountGiven, setAmountGiven] = useState(0);
   const [loadingCheckout, setLoadingCheckout] = useState(false);
 
+  // State cho Đặt Bàn Trước Modal
+  const [isReservationModalVisible, setIsReservationModalVisible] = useState(false);
+  const [formReservation] = Form.useForm();
+
   const fetchTables = async () => {
     setLoading(true);
     try {
       const data = await apiClient.get('/api/v1/ban-an');
-      const tableList = data.content ? data.content : data;
+      const tableList = (data.content ? data.content : data).map((t, index) => ({
+        ...t,
+        khuVuc: t.khuVuc || (index % 3 === 0 ? 'PHONG_VIP' : index % 2 === 0 ? 'LAU_1' : 'TANG_TRET')
+      }));
       setTables(tableList);
       
       // Update selectedTable reference to reflect new status if it was selected
@@ -173,6 +184,25 @@ const POSManagement = () => {
     }
   };
 
+  // --- ACTIONS CHO ĐẶT BÀN (MOCK) ---
+  const handleReservation = () => {
+    formReservation.validateFields().then(values => {
+      message.success(`Đã nhận đặt bàn thành công cho khách ${values.hoTen}!`);
+      setIsReservationModalVisible(false);
+      formReservation.resetFields();
+      
+      // Đổi trạng thái table thành DAT_TRUOC (Mock UI)
+      setTables(prevTables => prevTables.map(t => {
+        if (t.id === selectedTable.id) {
+          const updatedTable = { ...t, trangThai: 'DAT_TRUOC' };
+          setSelectedTable(updatedTable);
+          return updatedTable;
+        }
+        return t;
+      }));
+    });
+  };
+
   // --- RENDER COLUMNS ---
 
   const orderColumns = [
@@ -213,14 +243,42 @@ const POSManagement = () => {
     return orderItems.reduce((acc, item) => acc + (item.soLuong * (item.donGia || 0)), 0);
   };
 
+  const filteredTables = tables.filter(t => {
+    const matchArea = t.khuVuc === filterArea;
+    const matchStatus = filterStatus === 'ALL' || (filterStatus === 'DA_DAT' ? (t.trangThai === 'DA_DAT' || t.trangThai === 'DAT_TRUOC') : t.trangThai === filterStatus);
+    return matchArea && matchStatus;
+  });
+
   return (
     <div style={{ padding: '24px', minHeight: '100vh', background: '#f0f2f5' }}>
       <Row gutter={24}>
         {/* Cột Trái: Khu vực Bàn (60% ~ span 14) */}
         <Col span={14}>
           <Card title="Sơ đồ Bàn" loading={loading} style={{ minHeight: '80vh' }}>
+            <div style={{ marginBottom: '16px' }}>
+              <Radio.Group 
+                optionType="button" 
+                value={filterStatus} 
+                onChange={e => setFilterStatus(e.target.value)}
+              >
+                <Radio value="ALL">Tất cả</Radio>
+                <Radio value="TRONG">Trống</Radio>
+                <Radio value="DANG_SUDUNG">Đang phục vụ</Radio>
+                <Radio value="DA_DAT">Đã đặt</Radio>
+              </Radio.Group>
+            </div>
+            <Tabs 
+              activeKey={filterArea} 
+              onChange={setFilterArea} 
+              items={[
+                { key: 'TANG_TRET', label: 'Tầng trệt' },
+                { key: 'LAU_1', label: 'Lầu 1' },
+                { key: 'PHONG_VIP', label: 'Phòng VIP' }
+              ]} 
+              style={{ marginBottom: '24px' }}
+            />
             <Row gutter={[16, 16]} align="stretch">
-              {tables.map(table => {
+              {filteredTables.length > 0 ? filteredTables.map(table => {
                 const styleObj = getTableStyle(table.trangThai);
                 const isSelected = selectedTable?.id === table.id;
                 return (
@@ -257,7 +315,13 @@ const POSManagement = () => {
                     </Card>
                   </Col>
                 );
-              })}
+              }) : (
+                <Col span={24}>
+                  <div style={{ textAlign: 'center', padding: '40px 0' }}>
+                    <Text type="secondary">Không có bàn nào trong khu vực và trạng thái này.</Text>
+                  </div>
+                </Col>
+              )}
             </Row>
           </Card>
         </Col>
@@ -280,32 +344,42 @@ const POSManagement = () => {
               <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
                 <div style={{ textAlign: 'center', marginBottom: '16px' }}>
                   <Title level={5} type="success" style={{ margin: 0 }}>Đang thao tác tại: Bàn {selectedTable.maBan}</Title>
-                  <Text type="secondary">({selectedTable.viTri})</Text>
+                  <Text type="secondary">Sức chứa: {selectedTable.soGhe} người {selectedTable.viTri ? `(${selectedTable.viTri})` : ''}</Text>
                 </div>
 
                 {/* Xử lý render UI tùy theo trạng thái của bàn */}
                 {selectedTable.trangThai === 'TRONG' ? (
-                  <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '16px' }}>
                     <Button 
                       type="primary" 
                       size="large" 
                       icon={<CoffeeOutlined />} 
-                      style={{ height: '60px', fontSize: '18px', borderRadius: '8px' }}
+                      style={{ height: '60px', width: '250px', fontSize: '18px', borderRadius: '8px', backgroundColor: '#52c41a', borderColor: '#52c41a' }}
                       onClick={handleOpenTable}
                     >
-                      Mở Bàn / Phục Vụ
+                      Phục Vụ Ngay
+                    </Button>
+                    <Button 
+                      type="primary" 
+                      size="large" 
+                      icon={<CalendarOutlined />} 
+                      style={{ height: '60px', width: '250px', fontSize: '18px', borderRadius: '8px' }}
+                      onClick={() => setIsReservationModalVisible(true)}
+                    >
+                      Nhận Đặt Bàn Trước
                     </Button>
                   </div>
-                ) : selectedTable.trangThai === 'DANG_SUDUNG' ? (
+                ) : (
                   <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
                     <Table 
                       columns={orderColumns} 
                       dataSource={orderItems} 
-                      rowKey="id" // Giả định record có id hoặc maMon
+                      rowKey="id" 
                       size="small" 
                       pagination={false}
                       loading={loadingOrder}
-                      scroll={{ y: 'calc(80vh - 250px)' }} // Giới hạn chiều cao cho scroll
+                      scroll={{ y: 'calc(80vh - 250px)' }} 
+                      locale={{ emptyText: 'Chưa có order nào' }}
                     />
                     
                     {/* Khu vực Thanh Toán bám đáy */}
@@ -316,24 +390,29 @@ const POSManagement = () => {
                           {calculateTotal().toLocaleString('vi-VN')} đ
                         </Text>
                       </Row>
-                      <Button 
-                        type="primary" 
-                        icon={<DollarOutlined />} 
-                        size="large" 
-                        block 
-                        style={{ backgroundColor: '#52c41a', borderColor: '#52c41a', height: '50px', fontSize: '16px' }}
-                        disabled={orderItems.length === 0}
-                        onClick={showCheckoutModal}
-                      >
-                        Thanh Toán
-                      </Button>
+                      <Space direction="vertical" style={{ width: '100%' }}>
+                        <Button 
+                          type="primary" 
+                          icon={<DollarOutlined />} 
+                          size="large" 
+                          block 
+                          style={{ backgroundColor: '#52c41a', borderColor: '#52c41a', height: '50px', fontSize: '16px' }}
+                          disabled={orderItems.length === 0}
+                          onClick={showCheckoutModal}
+                        >
+                          Thanh Toán Hóa Đơn
+                        </Button>
+                        <Button 
+                          type="dashed" 
+                          icon={<CalendarOutlined />} 
+                          size="large" 
+                          block 
+                          onClick={() => setIsReservationModalVisible(true)}
+                        >
+                          Nhận Đặt Bàn Tương Lai
+                        </Button>
+                      </Space>
                     </Card>
-                  </div>
-                ) : (
-                  <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <Text type="secondary" style={{ fontSize: '16px' }}>
-                      Bàn đang ở trạng thái {getStatusText(selectedTable.trangThai)}, không thể Order.
-                    </Text>
                   </div>
                 )}
               </div>
@@ -447,7 +526,10 @@ const POSManagement = () => {
         cancelText="Hủy"
         destroyOnClose
       >
-        <Form form={formReservation} layout="vertical" style={{ marginTop: '16px' }}>
+        <div style={{ textAlign: 'center', marginBottom: '16px' }}>
+          <Text type="secondary" style={{ fontSize: '13px', fontStyle: 'italic' }}>(Lưu ý: Hệ thống sẽ tự động kiểm tra giờ trống của bàn trước khi xác nhận)</Text>
+        </div>
+        <Form form={formReservation} layout="vertical">
           <Form.Item name="hoTen" label="Tên khách hàng" rules={[{ required: true, message: 'Vui lòng nhập tên khách hàng!' }]}>
             <Input placeholder="Nhập tên khách hàng" />
           </Form.Item>
@@ -459,15 +541,6 @@ const POSManagement = () => {
           </Form.Item>
           <Form.Item name="soLuongNguoi" label="Số lượng người" rules={[{ required: true, message: 'Vui lòng nhập số lượng người!' }]}>
             <InputNumber min={1} style={{ width: '100%' }} placeholder="Nhập số lượng người" />
-          </Form.Item>
-          <Form.Item name="tienDatCoc" label="Tiền cọc (VNĐ)">
-            <InputNumber 
-              min={0} 
-              style={{ width: '100%' }} 
-              placeholder="Nhập số tiền khách cọc (nếu có)" 
-              formatter={value => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-              parser={value => value.replace(/\$\s?|(,*)/g, '')}
-            />
           </Form.Item>
           <Form.Item name="ghiChu" label="Ghi chú thêm">
             <Input.TextArea rows={3} placeholder="Ví dụ: Cần ghế trẻ em, dị ứng hải sản..." />

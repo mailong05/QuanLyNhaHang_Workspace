@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { Form, Input, Button, Card, message } from 'antd';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import apiClient from '../services/apiClient';
 
+// HMR Force Reload
 const Login = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -70,11 +71,16 @@ const Login = () => {
             <Input.Password prefix={<LockOutlined />} placeholder="Mật khẩu" />
           </Form.Item>
 
-          <Form.Item>
+          <Form.Item style={{ marginBottom: '12px' }}>
             <Button type="primary" htmlType="submit" style={{ width: '100%' }} loading={loading}>
               Đăng nhập
             </Button>
           </Form.Item>
+          
+          <div style={{ textAlign: 'center' }}>
+            <span style={{ color: '#000000a6' }}>Bạn chưa có tài khoản? </span>
+            <Link to="/register">Đăng ký ngay</Link>
+          </div>
         </Form>
       </Card>
     </div>

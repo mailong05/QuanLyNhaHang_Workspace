@@ -47,6 +47,17 @@ const Register = () => {
           size="large"
         >
           <Form.Item
+            name="username"
+            label="Tên đăng nhập"
+            rules={[
+              { required: true, message: 'Vui lòng nhập tên đăng nhập!' },
+              { pattern: /^\S+$/, message: 'Tên đăng nhập không được chứa khoảng trắng!' }
+            ]}
+          >
+            <Input prefix={<UserOutlined />} placeholder="Ví dụ: nguyenvana" />
+          </Form.Item>
+
+          <Form.Item
             name="hoTen"
             label="Họ và tên"
             rules={[{ required: true, message: 'Vui lòng nhập họ tên!' }]}
@@ -110,7 +121,7 @@ const Register = () => {
           </Form.Item>
           
           <div style={{ textAlign: 'center' }}>
-            <Text>Đã có tài khoản? <Link to="/login">Đăng nhập ngay</Link></Text>
+            <Text>Bạn đã có tài khoản? <Link to="/login">Đăng nhập ngay</Link></Text>
           </div>
         </Form>
       </Card>
