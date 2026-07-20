@@ -17,48 +17,61 @@ const AdminLayout = () => {
     navigate('/login');
   };
 
+  const role = localStorage.getItem('role') || 'NHAN_VIEN';
+
   const menuItems = [
     {
       key: '/admin',
       icon: <DashboardOutlined />,
       label: 'Dashboard',
+      roles: ['ADMIN']
     },
     {
       key: '/admin/pos',
       icon: <AppstoreAddOutlined />,
       label: 'Bán Hàng (POS)',
+      roles: ['ADMIN', 'NHAN_VIEN']
     },
     {
       key: '/admin/bookings',
       icon: <ScheduleOutlined />,
       label: 'Phiếu Đặt Bàn',
+      roles: ['ADMIN', 'NHAN_VIEN']
     },
     {
       key: '/admin/tables',
       icon: <TableOutlined />,
       label: 'Quản lý Bàn',
+      roles: ['ADMIN', 'NHAN_VIEN']
     },
     {
       key: '/admin/menu',
       icon: <CoffeeOutlined />,
       label: 'Quản lý Món ăn',
+      roles: ['ADMIN', 'NHAN_VIEN']
     },
     {
       key: '/admin/vouchers',
       icon: <TagOutlined />,
       label: 'Khuyến Mãi',
+      roles: ['ADMIN']
     },
     {
       key: '/admin/shifts',
       icon: <ClockCircleOutlined />,
       label: 'Giao Ca',
+      roles: ['ADMIN']
     },
     {
       key: '/admin/analytics',
       icon: <LineChartOutlined />,
       label: 'Thống Kê',
+      roles: ['ADMIN']
     },
   ];
+
+  // Lọc menu theo role
+  const filteredMenu = menuItems.filter(item => item.roles.includes(role));
 
   return (
     <Layout style={{ minHeight: '100vh' }}>
@@ -78,7 +91,7 @@ const AdminLayout = () => {
           theme="dark" 
           defaultSelectedKeys={[location.pathname]} 
           mode="inline" 
-          items={menuItems} 
+          items={filteredMenu} 
           onClick={({ key }) => navigate(key)}
         />
       </Sider>

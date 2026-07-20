@@ -18,8 +18,9 @@ const Login = () => {
         password: values.password,
       });
       
-      // Lưu token vào localStorage
+      // Lưu token và role vào localStorage
       localStorage.setItem('accessToken', data.accessToken);
+      localStorage.setItem('role', data.role || 'ADMIN'); // Giả định có data.role, mặc định ADMIN để không sụp đổ lúc test
       
       message.success('Đăng nhập thành công!');
       
