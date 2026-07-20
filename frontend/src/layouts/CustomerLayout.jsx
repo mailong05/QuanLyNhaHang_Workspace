@@ -24,7 +24,7 @@ const CustomerLayout = () => {
     setIsLoggedIn(false);
     localStorage.removeItem('accessToken');
     localStorage.removeItem('role');
-    navigate('/login');
+    navigate('/');
   };
 
   const userMenuItems = [
