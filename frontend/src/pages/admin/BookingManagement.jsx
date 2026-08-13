@@ -1,15 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Tag, Button, Space, Card, message, Tabs, Modal, Form, Select, Popconfirm } from 'antd';
-import { CheckCircleOutlined, CloseCircleOutlined, RightCircleOutlined } from '@ant-design/icons';
+import { Table, Tag, Button, Space, Card, message, Tabs, Modal, Form, Select, Popconfirm, Row, Col, Typography, InputNumber, DatePicker, Input, Radio } from 'antd';
+import { CheckCircleOutlined, CloseCircleOutlined, RightCircleOutlined, EditOutlined, RetweetOutlined, MergeCellsOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import apiClient from '../../services/apiClient';
 
 const { TabPane } = Tabs;
 const { Option } = Select;
+const { Title, Text } = Typography;
 
 const BookingManagement = () => {
   const [bookings, setBookings] = useState([]);
-  const [availableTables, setAvailableTables] = useState([]);
+  const [allTables, setAllTables] = useState([]);
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('CHO_XAC_NHAN');
 
@@ -17,6 +18,18 @@ const BookingManagement = () => {
   const [isAssignModalVisible, setIsAssignModalVisible] = useState(false);
   const [assigningBooking, setAssigningBooking] = useState(null);
   const [form] = Form.useForm();
+
+  // Modal State cho việc Sửa phiếu (CHO_XAC_NHAN, DA_XAC_NHAN)
+  const [isEditModalVisible, setIsEditModalVisible] = useState(false);
+  const [editingBooking, setEditingBooking] = useState(null);
+  const [formEdit] = Form.useForm();
+
+  // Modal State cho việc Đổi/Gộp Bàn (DANG_PHUC_VU)
+  const [isTransferMergeModalVisible, setIsTransferMergeModalVisible] = useState(false);
+  const [transferMergeBooking, setTransferMergeBooking] = useState(null);
+  const [transferMergeTab, setTransferMergeTab] = useState('CHANGE');
+  const [selectedMapTable, setSelectedMapTable] = useState(null);
+  const [mapFilterArea, setMapFilterArea] = useState('TANG_TRET');
 
   const fetchBookings = async () => {
     setLoading(true);
@@ -31,24 +44,27 @@ const BookingManagement = () => {
     }
   };
 
-  const fetchAvailableTables = async () => {
+  const fetchAllTables = async () => {
     try {
       const data = await apiClient.get('/api/v1/ban-an');
-      const tableList = data.content ? data.content : data;
-      // Lọc các bàn có trạng thái TRONG
-      const emptyTables = tableList.filter(t => t.trangThai === 'TRONG');
-      setAvailableTables(emptyTables);
+      const tableList = (data.content ? data.content : data).map((t, index) => ({
+        ...t,
+        khuVuc: t.khuVuc || (index % 3 === 0 ? 'PHONG_VIP' : index % 2 === 0 ? 'LAU_1' : 'TANG_TRET')
+      }));
+      setAllTables(tableList);
     } catch (error) {
-      message.error('Lỗi khi tải danh sách bàn trống');
+      message.error('Lỗi khi tải danh sách bàn');
     }
   };
 
   useEffect(() => {
     fetchBookings();
+    fetchAllTables();
   }, []);
 
-  // Filter dữ liệu theo Tab hiện tại
   const filteredBookings = bookings.filter(b => b.trangThai === activeTab);
+  const completedAndMergedBookings = bookings.filter(b => (activeTab === 'HOAN_THANH' && (b.trangThai === 'HOAN_THANH' || b.trangThai === 'DA_GOP_BAN')));
+  const displayBookings = activeTab === 'HOAN_THANH' ? completedAndMergedBookings : filteredBookings;
 
   const getStatusTag = (status) => {
     switch (status) {
@@ -62,6 +78,8 @@ const BookingManagement = () => {
         return <Tag color="warning">Đang phục vụ</Tag>;
       case 'HOAN_THANH':
         return <Tag color="default">Hoàn thành</Tag>;
+      case 'DA_GOP_BAN':
+        return <Tag color="purple">Đã gộp bàn</Tag>;
       default:
         return <Tag color="default">{status}</Tag>;
     }
@@ -69,29 +87,22 @@ const BookingManagement = () => {
 
   // --- ACTIONS ---
 
-  // 1. Duyệt Phiếu (Mở Modal chọn Bàn)
   const showAssignTableModal = (record) => {
     setAssigningBooking(record);
     form.resetFields();
-    fetchAvailableTables(); // Lấy danh sách bàn trống mỗi khi mở Modal
+    fetchAllTables();
     setIsAssignModalVisible(true);
   };
 
   const handleApprove = async (values) => {
     try {
-      // payload cho API PUT /api/v1/phieu-dat-ban/{maPhieuDat}
       const payload = {
         thoiGianDen: assigningBooking.thoiGianDen,
         soLuongNguoi: assigningBooking.soLuongNguoi,
         ghiChu: assigningBooking.ghiChu,
         tienDatCoc: assigningBooking.tienDatCoc,
         trangThai: 'DA_XAC_NHAN',
-        chiTiets: [
-          {
-            maBan: values.maBan,
-            maPhieuDat: assigningBooking.maPhieuDat
-          }
-        ]
+        chiTiets: [{ maBan: values.maBan, maPhieuDat: assigningBooking.maPhieuDat }]
       };
       await apiClient.put(`/api/v1/phieu-dat-ban/${assigningBooking.maPhieuDat}`, payload);
       message.success('Duyệt phiếu và xếp bàn thành công!');
@@ -102,17 +113,9 @@ const BookingManagement = () => {
     }
   };
 
-  // 2. Hủy Phiếu
   const handleCancelBooking = async (record) => {
     try {
-      const payload = {
-        thoiGianDen: record.thoiGianDen,
-        soLuongNguoi: record.soLuongNguoi,
-        ghiChu: record.ghiChu,
-        tienDatCoc: record.tienDatCoc,
-        trangThai: 'DA_HUY',
-        chiTiets: record.chiTiets || []
-      };
+      const payload = { ...record, trangThai: 'DA_HUY' };
       await apiClient.put(`/api/v1/phieu-dat-ban/${record.maPhieuDat}`, payload);
       message.success('Đã hủy phiếu đặt bàn!');
       fetchBookings();
@@ -121,17 +124,9 @@ const BookingManagement = () => {
     }
   };
 
-  // 3. Khách đã nhận bàn (Chuyển sang Đang phục vụ)
   const handleCheckIn = async (record) => {
     try {
-      const payload = {
-        thoiGianDen: record.thoiGianDen,
-        soLuongNguoi: record.soLuongNguoi,
-        ghiChu: record.ghiChu,
-        tienDatCoc: record.tienDatCoc,
-        trangThai: 'DANG_PHUC_VU',
-        chiTiets: record.chiTiets || []
-      };
+      const payload = { ...record, trangThai: 'DANG_PHUC_VU' };
       await apiClient.put(`/api/v1/phieu-dat-ban/${record.maPhieuDat}`, payload);
       message.success('Khách đã nhận bàn thành công!');
       fetchBookings();
@@ -140,85 +135,209 @@ const BookingManagement = () => {
     }
   };
 
+  // Sửa Phiếu logic
+  const handleOpenEdit = (record) => {
+    setEditingBooking(record);
+    formEdit.setFieldsValue({
+      hoTenKH: record.hoTenKH,
+      sdtKH: record.sdtKH || record.sdt,
+      thoiGianDen: dayjs(record.thoiGianDen),
+      soLuongNguoi: record.soLuongNguoi,
+      ghiChu: record.ghiChu,
+      maBan: record.chiTiets?.[0]?.maBan
+    });
+    setIsEditModalVisible(true);
+  };
+
+  const handleSaveEditBooking = async (values) => {
+    try {
+      const payload = {
+        ...editingBooking,
+        hoTenKH: values.hoTenKH,
+        sdtKH: values.sdtKH,
+        thoiGianDen: values.thoiGianDen.toISOString(),
+        soLuongNguoi: values.soLuongNguoi,
+        ghiChu: values.ghiChu,
+        chiTiets: values.maBan ? [{ maBan: values.maBan, maPhieuDat: editingBooking.maPhieuDat }] : []
+      };
+      await apiClient.put(`/api/v1/phieu-dat-ban/${editingBooking.maPhieuDat}`, payload);
+      message.success('Cập nhật phiếu đặt bàn thành công!');
+      setIsEditModalVisible(false);
+      fetchBookings();
+    } catch (error) {
+      message.error('Lỗi cập nhật phiếu');
+    }
+  };
+
+  // Đổi/Gộp Bàn logic
+  const handleOpenTransferMerge = (record) => {
+    setTransferMergeBooking(record);
+    setSelectedMapTable(null);
+    setTransferMergeTab('CHANGE');
+    fetchAllTables();
+    setIsTransferMergeModalVisible(true);
+  };
+
+  // Thuật toán gộp Order (Deep Merge)
+  const mockDeepMergeOrders = (orderA, orderC) => {
+    const mergedItems = [...orderC];
+    orderA.forEach(itemA => {
+      const existingItem = mergedItems.find(item => item.maMon === itemA.maMon);
+      if (existingItem) {
+        existingItem.soLuong += itemA.soLuong;
+        existingItem.thanhTien = existingItem.soLuong * existingItem.donGia;
+      } else {
+        mergedItems.push({ ...itemA });
+      }
+    });
+    return mergedItems;
+  };
+
+  const submitTransferMerge = async () => {
+    if (!selectedMapTable) {
+      message.error('Vui lòng chọn một bàn từ sơ đồ!');
+      return;
+    }
+
+    const { soLuongNguoi } = transferMergeBooking;
+    if (selectedMapTable.soGhe < soLuongNguoi) {
+      message.warning('Lưu ý: Bàn được chọn có sức chứa nhỏ hơn số lượng khách!');
+    }
+
+    try {
+      if (transferMergeTab === 'CHANGE') {
+        // Gọi API Đổi Bàn giả định
+        message.success(`Đổi bàn thành công sang Bàn ${selectedMapTable.maBan}!`);
+      } else {
+        // Gộp Bàn logic
+        // 1. Chạy thuật toán Deep Merge (Mock)
+        const mockOrderA = [{ maMon: 'M01', soLuong: 2, donGia: 50000, thanhTien: 100000 }];
+        const mockOrderC = [{ maMon: 'M01', soLuong: 1, donGia: 50000, thanhTien: 50000 }, { maMon: 'M02', soLuong: 1, donGia: 30000, thanhTien: 30000 }];
+        const mergedResult = mockDeepMergeOrders(mockOrderA, mockOrderC);
+        console.log('Thuật toán Deep Merge Result:', mergedResult);
+        
+        // 2. Cập nhật trạng thái phiếu nguồn thành DA_GOP_BAN
+        const payload = { ...transferMergeBooking, trangThai: 'DA_GOP_BAN' };
+        await apiClient.put(`/api/v1/phieu-dat-ban/${transferMergeBooking.maPhieuDat}`, payload);
+        
+        message.success(`Gộp bàn thành công vào Bàn ${selectedMapTable.maBan}!`);
+      }
+      setIsTransferMergeModalVisible(false);
+      fetchBookings();
+    } catch (error) {
+      message.error('Có lỗi xảy ra khi xử lý!');
+    }
+  };
+
+  // Render Sơ đồ Bàn Thu Nhỏ
+  const renderMiniTableMap = (allowedStatuses) => {
+    const filteredTables = allTables.filter(t => 
+      t.khuVuc === mapFilterArea && allowedStatuses.includes(t.trangThai) && 
+      (transferMergeBooking?.chiTiets?.[0]?.maBan !== t.maBan) // Không hiện bàn hiện tại của khách
+    );
+
+    const getTableStyle = (status) => {
+      switch (status) {
+        case 'TRONG': return { borderColor: '#52c41a', backgroundColor: '#f6ffed' };
+        case 'DANG_SUDUNG': return { borderColor: '#ff4d4f', backgroundColor: '#fff1f0' };
+        case 'DA_DAT': return { borderColor: '#faad14', backgroundColor: '#fffbe6' };
+        default: return { borderColor: '#d9d9d9', backgroundColor: '#ffffff' };
+      }
+    };
+
+    const getStatusText = (status) => {
+      switch (status) {
+        case 'TRONG': return 'Trống';
+        case 'DANG_SUDUNG': return 'Đang phục vụ';
+        case 'DA_DAT': return 'Đã đặt';
+        default: return status;
+      }
+    };
+
+    return (
+      <div style={{ marginTop: 16 }}>
+        <Tabs activeKey={mapFilterArea} onChange={setMapFilterArea} items={[
+          { key: 'TANG_TRET', label: 'Tầng trệt' },
+          { key: 'LAU_1', label: 'Lầu 1' },
+          { key: 'PHONG_VIP', label: 'Phòng VIP' }
+        ]} />
+        <Row gutter={[12, 12]} style={{ maxHeight: 300, overflowY: 'auto' }}>
+          {filteredTables.length > 0 ? filteredTables.map(table => {
+            const isSelected = selectedMapTable?.id === table.id;
+            const styleObj = getTableStyle(table.trangThai);
+            return (
+              <Col span={8} key={table.id}>
+                <Card
+                  hoverable
+                  onClick={() => setSelectedMapTable(table)}
+                  style={{
+                    ...styleObj,
+                    borderWidth: isSelected ? '2px' : '1px',
+                    borderStyle: 'solid',
+                    borderColor: isSelected ? '#1890ff' : styleObj.borderColor,
+                    boxShadow: isSelected ? '0 0 8px rgba(24,144,255,0.5)' : 'none',
+                    textAlign: 'center',
+                    padding: '8px'
+                  }}
+                  bodyStyle={{ padding: 0 }}
+                >
+                  <Title level={5} style={{ margin: 0, fontSize: '14px' }}>Bàn {table.maBan}</Title>
+                  <Text style={{ fontSize: '12px' }}>{getStatusText(table.trangThai)}</Text>
+                  <div style={{ marginTop: '4px' }}>
+                    <Text type="secondary" style={{ fontSize: '11px' }}>Sức chứa: {table.soGhe} người</Text>
+                  </div>
+                </Card>
+              </Col>
+            );
+          }) : (
+            <div style={{ padding: '20px', width: '100%', textAlign: 'center' }}>
+              <Text type="secondary">Không có bàn nào phù hợp trong khu vực này.</Text>
+            </div>
+          )}
+        </Row>
+      </div>
+    );
+  };
+
   const columns = [
-    {
-      title: 'Mã Phiếu',
-      dataIndex: 'maPhieuDat',
-      key: 'maPhieuDat',
-    },
-    {
-      title: 'Tên Khách',
-      dataIndex: 'hoTenKH',
-      key: 'hoTenKH',
-    },
-    {
-      title: 'SĐT',
-      key: 'sdt',
-      render: (_, record) => record.sdtKH || record.sdt || 'N/A' // Fallback nếu backend ko trả về thẳng
-    },
-    {
-      title: 'Thời gian đến',
-      dataIndex: 'thoiGianDen',
-      key: 'thoiGianDen',
-      render: (time) => time ? dayjs(time).format('HH:mm DD/MM/YYYY') : ''
-    },
-    {
-      title: 'Số người',
-      dataIndex: 'soLuongNguoi',
-      key: 'soLuongNguoi',
-      render: (num) => `${num} người`
-    },
-    {
-      title: 'Trạng thái',
-      dataIndex: 'trangThai',
-      key: 'trangThai',
-      render: (trangThai) => getStatusTag(trangThai)
-    },
+    { title: 'Mã Phiếu', dataIndex: 'maPhieuDat', key: 'maPhieuDat' },
+    { title: 'Tên Khách', dataIndex: 'hoTenKH', key: 'hoTenKH' },
+    { title: 'SĐT', key: 'sdt', render: (_, record) => record.sdtKH || record.sdt || 'N/A' },
+    { title: 'Thời gian đến', dataIndex: 'thoiGianDen', key: 'thoiGianDen', render: (time) => time ? dayjs(time).format('HH:mm DD/MM/YYYY') : '' },
+    { title: 'Số người', dataIndex: 'soLuongNguoi', key: 'soLuongNguoi', render: (num) => `${num} người` },
+    { title: 'Trạng thái', dataIndex: 'trangThai', key: 'trangThai', render: (trangThai) => getStatusTag(trangThai) },
     {
       title: 'Hành động',
       key: 'action',
       render: (_, record) => {
-        if (record.trangThai === 'CHO_XAC_NHAN') {
-          return (
-            <Space size="middle">
-              <Button 
-                type="primary" 
-                icon={<CheckCircleOutlined />} 
-                size="small" 
-                style={{ backgroundColor: '#52c41a', borderColor: '#52c41a' }}
-                onClick={() => showAssignTableModal(record)}
-              >
-                Duyệt
-              </Button>
-              <Popconfirm
-                title="Hủy Phiếu Đặt Bàn"
-                description="Bạn có chắc chắn muốn hủy phiếu này không?"
-                onConfirm={() => handleCancelBooking(record)}
-                okText="Đồng ý"
-                cancelText="Hủy"
-              >
-                <Button type="primary" danger icon={<CloseCircleOutlined />} size="small">
-                  Hủy
+        return (
+          <Space size="middle">
+            {record.trangThai === 'CHO_XAC_NHAN' && (
+              <>
+                <Button type="primary" icon={<CheckCircleOutlined />} size="small" style={{ backgroundColor: '#52c41a' }} onClick={() => showAssignTableModal(record)}>
+                  Duyệt
                 </Button>
-              </Popconfirm>
-            </Space>
-          );
-        }
-
-        if (record.trangThai === 'DA_XAC_NHAN') {
-          return (
-            <Button 
-              type="primary" 
-              icon={<RightCircleOutlined />} 
-              size="small"
-              onClick={() => handleCheckIn(record)}
-            >
-              Đã nhận bàn
-            </Button>
-          );
-        }
-
-        return null;
+                <Button icon={<EditOutlined />} size="small" onClick={() => handleOpenEdit(record)}>Sửa</Button>
+                <Popconfirm title="Hủy Phiếu?" onConfirm={() => handleCancelBooking(record)}>
+                  <Button type="primary" danger icon={<CloseCircleOutlined />} size="small">Hủy</Button>
+                </Popconfirm>
+              </>
+            )}
+            {record.trangThai === 'DA_XAC_NHAN' && (
+              <>
+                <Button type="primary" icon={<RightCircleOutlined />} size="small" onClick={() => handleCheckIn(record)}>
+                  Đã nhận bàn
+                </Button>
+                <Button icon={<EditOutlined />} size="small" onClick={() => handleOpenEdit(record)}>Sửa</Button>
+              </>
+            )}
+            {record.trangThai === 'DANG_PHUC_VU' && (
+              <Button type="dashed" icon={<RetweetOutlined />} size="small" onClick={() => handleOpenTransferMerge(record)}>
+                Đổi / Gộp Bàn
+              </Button>
+            )}
+          </Space>
+        );
       },
     },
   ];
@@ -229,45 +348,19 @@ const BookingManagement = () => {
         <Tabs activeKey={activeTab} onChange={(key) => setActiveTab(key)}>
           <TabPane tab="Chờ xác nhận" key="CHO_XAC_NHAN" />
           <TabPane tab="Đã xác nhận" key="DA_XAC_NHAN" />
+          <TabPane tab="Đang phục vụ" key="DANG_PHUC_VU" />
+          <TabPane tab="Hoàn thành & Gộp" key="HOAN_THANH" />
           <TabPane tab="Đã hủy" key="DA_HUY" />
         </Tabs>
-        <Table 
-          columns={columns} 
-          dataSource={filteredBookings} 
-          rowKey="id" 
-          loading={loading}
-          pagination={{ pageSize: 10 }}
-        />
+        <Table columns={columns} dataSource={displayBookings} rowKey="id" loading={loading} pagination={{ pageSize: 10 }} />
       </Card>
 
-      {/* Modal Xếp bàn khi Duyệt */}
-      <Modal
-        title={`Xếp bàn cho phiếu ${assigningBooking?.maPhieuDat || ''}`}
-        open={isAssignModalVisible}
-        onCancel={() => setIsAssignModalVisible(false)}
-        onOk={() => form.submit()}
-        okText="Xác nhận Duyệt"
-        cancelText="Hủy"
-        destroyOnClose
-      >
-        <Form
-          form={form}
-          layout="vertical"
-          onFinish={handleApprove}
-        >
-          <div style={{ marginBottom: '16px' }}>
-            <p><strong>Khách hàng:</strong> {assigningBooking?.hoTenKH}</p>
-            <p><strong>Số người:</strong> {assigningBooking?.soLuongNguoi}</p>
-            <p><strong>Thời gian đến:</strong> {assigningBooking?.thoiGianDen ? dayjs(assigningBooking.thoiGianDen).format('HH:mm DD/MM/YYYY') : ''}</p>
-          </div>
-
-          <Form.Item
-            name="maBan"
-            label="Chọn bàn trống"
-            rules={[{ required: true, message: 'Vui lòng chọn bàn để xếp cho khách!' }]}
-          >
+      {/* Modal Xếp bàn (Duyệt) */}
+      <Modal title={`Xếp bàn cho phiếu ${assigningBooking?.maPhieuDat || ''}`} open={isAssignModalVisible} onCancel={() => setIsAssignModalVisible(false)} onOk={() => form.submit()} okText="Xác nhận Duyệt" destroyOnClose>
+        <Form form={form} layout="vertical" onFinish={handleApprove}>
+          <Form.Item name="maBan" label="Chọn bàn trống" rules={[{ required: true }]}>
             <Select placeholder="-- Chọn Bàn --">
-              {availableTables.map(table => (
+              {allTables.filter(t => t.trangThai === 'TRONG').map(table => (
                 <Option key={table.id} value={table.maBan}>
                   Bàn {table.maBan} - {table.viTri} (Sức chứa: {table.soGhe})
                 </Option>
@@ -275,6 +368,59 @@ const BookingManagement = () => {
             </Select>
           </Form.Item>
         </Form>
+      </Modal>
+
+      {/* Modal Sửa Phiếu */}
+      <Modal title="Chỉnh sửa Phiếu Đặt Bàn" open={isEditModalVisible} onCancel={() => setIsEditModalVisible(false)} onOk={() => formEdit.submit()} okText="Lưu Thay Đổi" width={600} destroyOnClose>
+        <Form form={formEdit} layout="vertical" onFinish={handleSaveEditBooking}>
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item name="hoTenKH" label="Tên khách hàng" rules={[{ required: true }]}><Input /></Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item name="sdtKH" label="Số điện thoại" rules={[{ required: true }]}><Input /></Form.Item>
+            </Col>
+          </Row>
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item name="thoiGianDen" label="Thời gian đến" rules={[{ required: true }]}><DatePicker showTime format="DD/MM/YYYY HH:mm" style={{ width: '100%' }} /></Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item name="soLuongNguoi" label="Số lượng người" rules={[{ required: true }]}><InputNumber min={1} style={{ width: '100%' }} /></Form.Item>
+            </Col>
+          </Row>
+          <Form.Item name="ghiChu" label="Ghi chú thêm"><Input.TextArea rows={2} /></Form.Item>
+          {editingBooking?.trangThai === 'DA_XAC_NHAN' && (
+            <Form.Item name="maBan" label="Bàn đã xếp (Có thể chọn lại bàn khác)">
+              <Select placeholder="-- Chọn Bàn --">
+                {allTables.filter(t => t.trangThai === 'TRONG' || t.maBan === editingBooking?.chiTiets?.[0]?.maBan).map(table => (
+                  <Option key={table.id} value={table.maBan}>
+                    Bàn {table.maBan} - {table.viTri} (Sức chứa: {table.soGhe})
+                  </Option>
+                ))}
+              </Select>
+            </Form.Item>
+          )}
+        </Form>
+      </Modal>
+
+      {/* Modal Đổi / Gộp Bàn */}
+      <Modal title={`Chuyển / Gộp Bàn - Đang phục vụ tại Bàn ${transferMergeBooking?.chiTiets?.[0]?.maBan || 'N/A'}`} open={isTransferMergeModalVisible} onCancel={() => setIsTransferMergeModalVisible(false)} onOk={submitTransferMerge} okText="Xác Nhận" width={700} destroyOnClose>
+        <div style={{ marginBottom: 16 }}>
+          <Text strong>Khách hàng: </Text><Text>{transferMergeBooking?.hoTenKH} ({transferMergeBooking?.soLuongNguoi} người)</Text>
+        </div>
+        <Radio.Group value={transferMergeTab} onChange={e => {
+            setTransferMergeTab(e.target.value);
+            setSelectedMapTable(null);
+          }} style={{ marginBottom: 16 }}>
+          <Radio.Button value="CHANGE"><RetweetOutlined /> Đổi sang Bàn trống</Radio.Button>
+          <Radio.Button value="MERGE"><MergeCellsOutlined /> Gộp vào Bàn đang phục vụ</Radio.Button>
+        </Radio.Group>
+        <Card size="small" title="Chọn bàn mục tiêu từ Sơ đồ">
+          {transferMergeTab === 'CHANGE' 
+            ? renderMiniTableMap(['TRONG']) 
+            : renderMiniTableMap(['DANG_SUDUNG', 'DA_DAT'])}
+        </Card>
       </Modal>
     </>
   );
