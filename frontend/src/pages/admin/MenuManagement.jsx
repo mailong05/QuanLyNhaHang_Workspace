@@ -8,23 +8,36 @@ const { Option } = Select;
 const MenuManagement = () => {
   const [menus, setMenus] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [pagination, setPagination] = useState({ current: 1, pageSize: 10, total: 0 });
   
   // State quản lý Modal
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [editingId, setEditingId] = useState(null); // Lưu maMon đang sửa
   const [form] = Form.useForm();
 
-  const fetchMenus = async () => {
+  const fetchMenus = async (page = 1, pageSize = 10) => {
     setLoading(true);
     try {
-      const data = await apiClient.get('/api/v1/mon-an');
+      // Spring Data JPA dùng page bắt đầu từ 0
+      const data = await apiClient.get(`/api/v1/mon-an?page=${page - 1}&size=${pageSize}`);
       const menuList = data.content ? data.content : data;
       setMenus(menuList);
+      if (data.totalElements !== undefined) {
+        setPagination({
+          current: page,
+          pageSize: pageSize,
+          total: data.totalElements
+        });
+      }
     } catch (error) {
       message.error(error.message || 'Lỗi khi tải danh sách món ăn');
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleTableChange = (newPagination) => {
+    fetchMenus(newPagination.current, newPagination.pageSize);
   };
 
   useEffect(() => {
@@ -163,9 +176,10 @@ const MenuManagement = () => {
         <Table 
           columns={columns} 
           dataSource={menus} 
-          rowKey="id" 
+          rowKey="maMon" 
           loading={loading}
-          pagination={{ pageSize: 10 }}
+          pagination={pagination}
+          onChange={handleTableChange}
         />
       </Card>
 
