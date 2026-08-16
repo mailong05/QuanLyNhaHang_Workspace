@@ -27,4 +27,7 @@ public abstract class BaseEntity {
 
     @Version
     private Integer version;
+
+    @Column(name = "deleted_at")
+    private LocalDateTime deletedAt;
 }

@@ -12,4 +12,5 @@ public interface MonAnService {
     MonAnResponseDTO createMonAn(MonAnCreateRequestDTO requestDTO);
     MonAnResponseDTO updateMonAn(String maMon, MonAnUpdateRequestDTO requestDTO);
     void deleteMonAn(String maMon);
+    void restoreMonAn(Long id);
 }

@@ -75,7 +75,37 @@ public class MonAnServiceImpl implements MonAnService {
     public void deleteMonAn(String maMon) {
         MonAn ma = monAnRepository.findByMaMonIgnoreCase(maMon)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy Món ăn với mã: " + maMon));
+                
+        // Giải phóng Unique Key trước khi xóa mềm
+        if (ma.getMaMon() != null && !ma.getMaMon().contains("_deleted_")) {
+            ma.setMaMon(ma.getMaMon() + "_deleted_" + System.currentTimeMillis());
+            monAnRepository.saveAndFlush(ma);
+        }
+        
+        // Kích hoạt @SQLDelete
         monAnRepository.delete(ma);
+    }
+
+    @Override
+    public void restoreMonAn(Long id) {
+        MonAn ma = monAnRepository.findDeletedById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy Món ăn đã xóa với ID: " + id));
+
+        // Bỏ đánh dấu xóa
+        ma.setDeletedAt(null);
+        
+        // Cắt bỏ hậu tố _deleted_ để lấy lại mã gốc
+        String originalMaMon = ma.getMaMon().replaceAll("_deleted_.*", "");
+        // Chủ động kiểm tra trước thay vì try-catch để tránh bẫy Rollback-Only Transaction
+        if (monAnRepository.existsByMaMon(originalMaMon)) {
+            // Nếu mã gốc đã bị chiếm dụng, cấp mã kèm _restored_
+            ma.setMaMon(originalMaMon + "_restored_" + System.currentTimeMillis());
+        } else {
+            // An toàn -> Trả lại mã gốc
+            ma.setMaMon(originalMaMon);
+        }
+        
+        monAnRepository.save(ma);
     }
 
     private MonAnResponseDTO convertToResponseDTO(MonAn ma) {
