@@ -13,4 +13,5 @@ public interface NhanVienService {
     NhanVienResponseDTO createNhanVien(NhanVienCreateRequestDTO requestDTO);
     NhanVienResponseDTO updateNhanVien(String maNV, NhanVienUpdateRequestDTO requestDTO);
     void deleteNhanVien(String maNV);
+    void restoreNhanVien(Long id);
 }

@@ -179,6 +179,7 @@ const TableManagement = () => {
           loading={loading}
           pagination={pagination}
           onChange={handleTableChange}
+          scroll={{ x: 'max-content' }}
         />
       </Card>
 

@@ -72,6 +72,7 @@ public class MonAnServiceImpl implements MonAnService {
     }
 
     @Override
+    @org.springframework.transaction.annotation.Transactional
     public void deleteMonAn(String maMon) {
         MonAn ma = monAnRepository.findByMaMonIgnoreCase(maMon)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy Món ăn với mã: " + maMon));

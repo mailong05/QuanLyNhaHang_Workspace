@@ -75,10 +75,35 @@ public class BanAnServiceImpl implements BanAnService {
     }
 
     @Override
+    @org.springframework.transaction.annotation.Transactional
     public void deleteBanAn(String maBan) {
         BanAn ba = banAnRepository.findByMaBanIgnoreCase(maBan)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy Bàn ăn với mã: " + maBan));
+                
+        if (ba.getMaBan() != null && !ba.getMaBan().contains("_deleted_")) {
+            ba.setMaBan(ba.getMaBan() + "_deleted_" + System.currentTimeMillis());
+            banAnRepository.saveAndFlush(ba);
+        }
+        
         banAnRepository.delete(ba);
+    }
+
+    @Override
+    @org.springframework.transaction.annotation.Transactional
+    public void restoreBanAn(Long id) {
+        BanAn entity = banAnRepository.findDeletedById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy dữ liệu đã xóa với ID: " + id));
+
+        entity.setDeletedAt(null);
+        String originalCode = entity.getMaBan().replaceAll("_deleted_.*", "");
+        
+        if (banAnRepository.existsByMaBan(originalCode)) {
+            entity.setMaBan(originalCode + "_restored_" + System.currentTimeMillis());
+        } else {
+            entity.setMaBan(originalCode);
+        }
+        
+        banAnRepository.save(entity);
     }
 
     private BanAnResponseDTO convertToResponseDTO(BanAn ba) {

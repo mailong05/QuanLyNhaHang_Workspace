@@ -12,4 +12,5 @@ public interface BanAnService {
     BanAnResponseDTO createBanAn(BanAnCreateRequestDTO requestDTO);
     BanAnResponseDTO updateBanAn(String maBan, BanAnUpdateRequestDTO requestDTO);
     void deleteBanAn(String maBan);
+    void restoreBanAn(Long id);
 }

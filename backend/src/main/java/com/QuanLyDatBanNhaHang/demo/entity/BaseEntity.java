@@ -25,9 +25,6 @@ public abstract class BaseEntity {
     @LastModifiedDate
     private LocalDateTime updatedAt;
 
-    @Version
-    private Integer version;
-
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
 }
