@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import java.math.BigDecimal;
 
 import java.time.LocalDateTime;
 
@@ -22,9 +23,9 @@ public class GiaoCaResponseDTO {
     private String tenCa;
     private LocalDateTime thoiGianVaoCa;
     private LocalDateTime thoiGianKetCa;
-    private Double tienBanDau;
-    private Double tienKetCa;
-    private Double tienHeThong;
+    private BigDecimal tienBanDau;
+    private BigDecimal tienKetCa;
+    private BigDecimal tienHeThong;
     private String ghiChu;
     private TrangThaiGiaoCa trangThai;
 }

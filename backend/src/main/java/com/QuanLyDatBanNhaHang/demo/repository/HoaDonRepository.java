@@ -21,4 +21,12 @@ public interface HoaDonRepository extends JpaRepository<HoaDon, Long> {
     Page<HoaDon> findAllWithRelations(Pageable pageable);
     @Query("SELECT MAX(CAST(SUBSTRING(h.maHD, 3, 6) AS int)) FROM HoaDon h")
     Integer findMaxMaHD();
+    @Query("SELECT SUM(h.tongThanhToan) FROM HoaDon h WHERE h.thoiGianThanhToan BETWEEN :start AND :end AND h.trangThaiThanhToan = 'DA_THANH_TOAN'")
+    java.math.BigDecimal sumDoanhThuByDateRange(@org.springframework.data.repository.query.Param("start") java.time.LocalDateTime start, @org.springframework.data.repository.query.Param("end") java.time.LocalDateTime end);
+
+    @Query("SELECT COUNT(h) FROM HoaDon h WHERE h.thoiGianThanhToan BETWEEN :start AND :end AND h.trangThaiThanhToan = 'DA_THANH_TOAN'")
+    Long countDonHangByDateRange(@org.springframework.data.repository.query.Param("start") java.time.LocalDateTime start, @org.springframework.data.repository.query.Param("end") java.time.LocalDateTime end);
+
+    @Query("SELECT SUM(h.tongThanhToan) FROM HoaDon h WHERE h.thoiGianThanhToan BETWEEN :start AND :end AND h.trangThaiThanhToan = 'DA_THANH_TOAN' AND h.phuongThucTT = 'TIEN_MAT'")
+    java.math.BigDecimal sumTienMatByDateRange(@org.springframework.data.repository.query.Param("start") java.time.LocalDateTime start, @org.springframework.data.repository.query.Param("end") java.time.LocalDateTime end);
 }
