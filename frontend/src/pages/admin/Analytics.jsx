@@ -1,26 +1,42 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Typography, Row, Col, Card, DatePicker, Table, Space, Button } from 'antd';
 import { FilterOutlined, DownloadOutlined } from '@ant-design/icons';
+import axios from 'axios';
 
 const { Title, Text } = Typography;
 const { RangePicker } = DatePicker;
 
-const mockTopItems = [
-  { key: '1', rank: 1, tenMon: 'Bò Bít Tết Sốt Tiêu Xanh', soLuong: 125, doanhThu: 31250000 },
-  { key: '2', rank: 2, tenMon: 'Cá Hồi Áp Chảo Măng Tây', soLuong: 98, doanhThu: 31360000 },
-  { key: '3', rank: 3, tenMon: 'Súp Nấm Truffle', soLuong: 85, doanhThu: 15300000 },
-  { key: '4', rank: 4, tenMon: 'Salad Hoàng Gia', soLuong: 70, doanhThu: 8400000 },
-  { key: '5', rank: 5, tenMon: 'Gà Quay Mật Ong', soLuong: 65, doanhThu: 13650000 },
-];
-
 const topItemColumns = [
-  { title: 'Top', dataIndex: 'rank', key: 'rank', width: 60, align: 'center', render: val => <Text strong style={{ color: val <= 3 ? '#cf1322' : 'inherit' }}>#{val}</Text> },
+  { title: 'Top', key: 'rank', width: 60, align: 'center', render: (text, record, index) => <Text strong style={{ color: index < 3 ? '#cf1322' : 'inherit' }}>#{index + 1}</Text> },
   { title: 'Tên Món Ăn', dataIndex: 'tenMon', key: 'tenMon' },
   { title: 'Đã Bán', dataIndex: 'soLuong', key: 'soLuong', align: 'center' },
   { title: 'Doanh Thu', dataIndex: 'doanhThu', key: 'doanhThu', render: val => `${val.toLocaleString('vi-VN')} đ`, align: 'right' },
 ];
 
 const Analytics = () => {
+  const [topItems, setTopItems] = useState([]);
+  const [chartData, setChartData] = useState([]);
+
+  useEffect(() => {
+    const fetchAnalytics = async () => {
+      try {
+        const token = localStorage.getItem('accessToken');
+        const headers = token ? { Authorization: `Bearer ${token}` } : {};
+
+        const [itemsRes, chartRes] = await Promise.all([
+          axios.get('http://localhost:8080/api/v1/reports/top-items', { headers }),
+          axios.get('http://localhost:8080/api/v1/reports/revenue-chart', { headers })
+        ]);
+
+        setTopItems(itemsRes.data.data);
+        setChartData(chartRes.data.data);
+      } catch (error) {
+        console.error('Lỗi khi tải dữ liệu analytics', error);
+      }
+    };
+    fetchAnalytics();
+  }, []);
+
   return (
     <div style={{ padding: '24px', background: '#f0f2f5', minHeight: '100vh' }}>
       <Row justify="space-between" align="middle" style={{ marginBottom: '24px' }}>
@@ -38,46 +54,38 @@ const Analytics = () => {
 
       <Row gutter={[24, 24]}>
         <Col xs={24} lg={14}>
-          <Card 
-            title="Biểu Đồ Doanh Thu" 
-            bordered={false} 
-            style={{ borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.05)', height: '100%' }}
-          >
-            {/* Khung trống cho Biểu đồ Recharts sau này */}
-            <div style={{ 
-              height: '400px', 
-              border: '2px dashed #d9d9d9', 
-              borderRadius: '8px', 
-              display: 'flex', 
-              alignItems: 'center', 
-              justifyContent: 'center',
-              backgroundColor: '#fafafa'
-            }}>
-              <Text type="secondary" style={{ fontSize: '18px' }}>[ Khu vực Biểu đồ Doanh Thu - Dành cho Recharts ]</Text>
+          <Card title="Biểu Đồ Doanh Thu 7 Ngày Qua" bordered={false} style={{ borderRadius: '12px', height: '100%' }}>
+            {/* Giả lập biểu đồ - trong thực tế sẽ dùng Recharts hoặc Chart.js */}
+            <div style={{ height: '300px', display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', padding: '20px 0' }}>
+              {chartData.map((data, index) => {
+                const maxDoanhThu = Math.max(...chartData.map(d => d.doanhThu || 0));
+                const heightPercent = maxDoanhThu === 0 ? 0 : ((data.doanhThu || 0) / maxDoanhThu) * 100;
+                return (
+                  <div key={index} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '10%' }}>
+                    <div style={{ 
+                      height: `${heightPercent}%`, 
+                      minHeight: '4px',
+                      width: '30px', 
+                      backgroundColor: '#1890ff', 
+                      borderRadius: '4px 4px 0 0',
+                      transition: 'height 0.5s'
+                    }}></div>
+                    <Text style={{ fontSize: '12px', marginTop: '8px' }}>{data.date.split('-').slice(1).join('/')}</Text>
+                  </div>
+                );
+              })}
             </div>
           </Card>
         </Col>
-        
         <Col xs={24} lg={10}>
-          <Card 
-            title="Top 5 Món Bán Chạy" 
-            bordered={false} 
-            style={{ borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.05)', height: '100%' }}
-          >
+          <Card title="Top 5 Món Ăn Bán Chạy" bordered={false} style={{ borderRadius: '12px', height: '100%' }}>
             <Table 
               columns={topItemColumns} 
-              dataSource={mockTopItems} 
+              dataSource={topItems} 
               pagination={false}
-              size="middle"
+              rowKey="tenMon"
+              size="small"
             />
-            
-            <div style={{ marginTop: '24px', padding: '16px', background: '#e6f7ff', borderRadius: '8px' }}>
-              <Title level={5} style={{ color: '#1890ff', margin: 0 }}>Tỷ lệ lấp đầy bàn trung bình</Title>
-              <div style={{ display: 'flex', alignItems: 'baseline', marginTop: '8px' }}>
-                <Text style={{ fontSize: '32px', fontWeight: 'bold', color: '#1890ff', marginRight: '8px' }}>76%</Text>
-                <Text type="secondary">Trong khoảng thời gian đã chọn</Text>
-              </div>
-            </div>
           </Card>
         </Col>
       </Row>
