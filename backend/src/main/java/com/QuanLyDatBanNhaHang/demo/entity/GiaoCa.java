@@ -8,6 +8,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import java.math.BigDecimal;
 
 import java.time.LocalDateTime;
 
@@ -38,13 +39,13 @@ public class GiaoCa extends BaseEntity {
     private LocalDateTime thoiGianKetCa;
 
     @Column(name = "tienBanDau", nullable = false)
-    private Double tienBanDau;
+    private BigDecimal tienBanDau;
 
     @Column(name = "tienKetCa")
-    private Double tienKetCa;
+    private BigDecimal tienKetCa;
 
     @Column(name = "tienHeThong")
-    private Double tienHeThong;
+    private BigDecimal tienHeThong;
 
     @Nationalized
     @Column(name = "ghiChu", length = 255)

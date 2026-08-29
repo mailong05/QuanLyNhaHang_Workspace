@@ -39,10 +39,10 @@ function App() {
             <Route path="tables" element={<TableManagement />} />
             <Route path="menu" element={<MenuManagement />} />
             <Route path="vouchers" element={<VoucherManagement />} />
+            <Route path="shifts" element={<ShiftManagement />} />
             
             {/* Dành riêng cho ADMIN */}
             <Route element={<ProtectedRoute allowedRoles={['ROLE_ADMIN', 'ADMIN']} />}>
-              <Route path="shifts" element={<ShiftManagement />} />
               <Route path="analytics" element={<Analytics />} />
             </Route>
           </Route>

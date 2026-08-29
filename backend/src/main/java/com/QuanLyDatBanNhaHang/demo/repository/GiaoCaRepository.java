@@ -13,4 +13,6 @@ public interface GiaoCaRepository extends JpaRepository<GiaoCa, Long> {
     @Query(value = "SELECT g FROM GiaoCa g JOIN FETCH g.nhanVien JOIN FETCH g.caLamViec",
            countQuery = "SELECT COUNT(g) FROM GiaoCa g")
     Page<GiaoCa> findAllWithRelations(Pageable pageable);
+
+    java.util.Optional<GiaoCa> findByNhanVienAndTrangThai(com.QuanLyDatBanNhaHang.demo.entity.NhanVien nhanVien, com.QuanLyDatBanNhaHang.demo.enums.TrangThaiGiaoCa trangThai);
 }

@@ -44,6 +44,9 @@ public class HoaDon extends BaseEntity {
 
     @Column(name = "ngayTao")
     private LocalDateTime ngayTao;
+    
+    @Column(name = "thoiGianThanhToan")
+    private LocalDateTime thoiGianThanhToan;
 
     @Column(name = "gioVao")
     private LocalTime gioVao;

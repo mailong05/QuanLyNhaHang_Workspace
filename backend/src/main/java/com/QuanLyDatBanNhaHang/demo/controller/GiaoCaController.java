@@ -11,6 +11,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import com.QuanLyDatBanNhaHang.demo.dto.response.ApiResponse;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -26,23 +27,26 @@ public class GiaoCaController {
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     public ResponseEntity<ApiResponse<GiaoCaResponseDTO>> getGiaoCaById(@PathVariable Long id) {
         return ResponseEntity.ok(ApiResponse.success(giaoCaService.getGiaoCaById(id)));
     }
 
-    @PostMapping
-    public ResponseEntity<ApiResponse<GiaoCaResponseDTO>> createGiaoCa(@Valid @RequestBody GiaoCaCreateRequestDTO requestDTO) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(giaoCaService.createGiaoCa(requestDTO)));
+    @PostMapping("/vao-ca")
+    @PreAuthorize("hasAnyRole('ADMIN', 'NHAN_VIEN')")
+    public ResponseEntity<ApiResponse<GiaoCaResponseDTO>> vaoCa(@Valid @RequestBody com.QuanLyDatBanNhaHang.demo.dto.request.VaoCaRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(giaoCaService.vaoCa(request)));
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<ApiResponse<GiaoCaResponseDTO>> updateGiaoCa(@PathVariable Long id, @Valid @RequestBody GiaoCaUpdateRequestDTO requestDTO) {
-        return ResponseEntity.ok(ApiResponse.success(giaoCaService.updateGiaoCa(id, requestDTO)));
+    @GetMapping("/hien-tai")
+    @PreAuthorize("hasAnyRole('ADMIN', 'NHAN_VIEN')")
+    public ResponseEntity<ApiResponse<GiaoCaResponseDTO>> getGiaoCaHienTai() {
+        return ResponseEntity.ok(ApiResponse.success(giaoCaService.getGiaoCaHienTai()));
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<ApiResponse<Void>> deleteGiaoCa(@PathVariable Long id) {
-        giaoCaService.deleteGiaoCa(id);
-        return ResponseEntity.ok(ApiResponse.success("Xóa thành công", null));
+    @PutMapping("/ket-ca")
+    @PreAuthorize("hasAnyRole('ADMIN', 'NHAN_VIEN')")
+    public ResponseEntity<ApiResponse<GiaoCaResponseDTO>> ketCa(@Valid @RequestBody com.QuanLyDatBanNhaHang.demo.dto.request.KetCaRequest request) {
+        return ResponseEntity.ok(ApiResponse.success(giaoCaService.ketCa(request)));
     }
 }

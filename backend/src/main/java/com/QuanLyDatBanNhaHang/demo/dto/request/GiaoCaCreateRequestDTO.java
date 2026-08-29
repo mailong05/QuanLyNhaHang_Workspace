@@ -8,6 +8,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import java.math.BigDecimal;
 
 import java.time.LocalDateTime;
 
@@ -28,7 +29,7 @@ public class GiaoCaCreateRequestDTO {
     private LocalDateTime thoiGianVaoCa;
 
     @NotNull(message = "Tiền ban đầu không được để trống")
-    private Double tienBanDau;
+    private BigDecimal tienBanDau;
 
     @NotNull(message = "Trạng thái không được để trống")
     private TrangThaiGiaoCa trangThai;

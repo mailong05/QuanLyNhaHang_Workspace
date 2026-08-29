@@ -37,4 +37,6 @@ public interface NhanVienRepository extends JpaRepository<NhanVien, Long> {
 
     @org.springframework.data.jpa.repository.Query(value = "SELECT * FROM NhanVien WHERE id = :id AND deleted_at IS NOT NULL", nativeQuery = true)
     java.util.Optional<NhanVien> findDeletedById(@org.springframework.data.repository.query.Param("id") Long id);
+
+    Optional<NhanVien> findByTaiKhoanUsername(String username);
 }

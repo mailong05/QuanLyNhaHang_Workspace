@@ -101,7 +101,7 @@ const AdminLayout = () => {
       key: '/admin/shifts',
       icon: <ClockCircleOutlined />,
       label: 'Giao Ca',
-      roles: ['ADMIN', 'ROLE_ADMIN']
+      roles: ['ADMIN', 'ROLE_ADMIN', 'STAFF', 'ROLE_STAFF', 'NHAN_VIEN', 'QUAN_LY']
     },
     {
       key: '/admin/analytics',
