@@ -13,6 +13,8 @@ import lombok.Setter;
 
 import java.time.LocalDate;
 import java.util.List;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 
 @Getter
 @Setter
@@ -21,13 +23,15 @@ import java.util.List;
 @Builder
 @Entity
 @Table(name = "NhanVien")
+@SQLDelete(sql = "UPDATE NhanVien SET deleted_at = CURRENT_TIMESTAMP WHERE id=?")
+@SQLRestriction("deleted_at IS NULL")
 public class NhanVien extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
 
-    @Column(name = "maNV", length = 20, unique = true, nullable = false, updatable = false)
+    @Column(name = "maNV", length = 100, unique = true, nullable = false)
     private String maNV;
 
     @Nationalized

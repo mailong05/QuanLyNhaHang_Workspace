@@ -87,10 +87,35 @@ public class NhanVienServiceImpl implements NhanVienService {
     }
 
     @Override
+    @org.springframework.transaction.annotation.Transactional
     public void deleteNhanVien(String maNV) {
         NhanVien nv = nhanVienRepository.findByMaNVIgnoreCase(maNV)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy Nhân viên với mã: " + maNV));
+                
+        if (nv.getMaNV() != null && !nv.getMaNV().contains("_deleted_")) {
+            nv.setMaNV(nv.getMaNV() + "_deleted_" + System.currentTimeMillis());
+            nhanVienRepository.saveAndFlush(nv);
+        }
+        
         nhanVienRepository.delete(nv);
+    }
+
+    @Override
+    @org.springframework.transaction.annotation.Transactional
+    public void restoreNhanVien(Long id) {
+        NhanVien entity = nhanVienRepository.findDeletedById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy dữ liệu đã xóa với ID: " + id));
+
+        entity.setDeletedAt(null);
+        String originalCode = entity.getMaNV().replaceAll("_deleted_.*", "");
+        
+        if (nhanVienRepository.existsByMaNV(originalCode)) {
+            entity.setMaNV(originalCode + "_restored_" + System.currentTimeMillis());
+        } else {
+            entity.setMaNV(originalCode);
+        }
+        
+        nhanVienRepository.save(entity);
     }
 
     private NhanVienResponseDTO convertToResponseDTO(NhanVien nv) {

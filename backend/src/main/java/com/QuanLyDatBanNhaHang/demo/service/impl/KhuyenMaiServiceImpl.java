@@ -64,10 +64,35 @@ public class KhuyenMaiServiceImpl implements KhuyenMaiService {
     }
 
     @Override
+    @org.springframework.transaction.annotation.Transactional
     public void deleteKhuyenMai(String maKM) {
         KhuyenMai km = khuyenMaiRepository.findByMaKMIgnoreCase(maKM)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy Khuyến mãi với mã: " + maKM));
+                
+        if (km.getMaKM() != null && !km.getMaKM().contains("_deleted_")) {
+            km.setMaKM(km.getMaKM() + "_deleted_" + System.currentTimeMillis());
+            khuyenMaiRepository.saveAndFlush(km);
+        }
+        
         khuyenMaiRepository.delete(km);
+    }
+
+    @Override
+    @org.springframework.transaction.annotation.Transactional
+    public void restoreKhuyenMai(Long id) {
+        KhuyenMai entity = khuyenMaiRepository.findDeletedById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy dữ liệu đã xóa với ID: " + id));
+
+        entity.setDeletedAt(null);
+        String originalCode = entity.getMaKM().replaceAll("_deleted_.*", "");
+        
+        if (khuyenMaiRepository.existsByMaKM(originalCode)) {
+            entity.setMaKM(originalCode + "_restored_" + System.currentTimeMillis());
+        } else {
+            entity.setMaKM(originalCode);
+        }
+        
+        khuyenMaiRepository.save(entity);
     }
 
     private KhuyenMaiResponseDTO convertToResponseDTO(KhuyenMai km) {

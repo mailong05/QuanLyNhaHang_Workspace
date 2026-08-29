@@ -23,4 +23,12 @@ public interface BanAnRepository extends JpaRepository<BanAn, Long> {
     Page<BanAn> findAllWithRelations(Pageable pageable);
     @Query("SELECT MAX(CAST(SUBSTRING(b.maBan, 3, 6) AS int)) FROM BanAn b")
     Integer findMaxMaBan();
+
+    boolean existsByMaBan(String maBan);
+
+    @org.springframework.data.jpa.repository.Query(value = "SELECT * FROM BanAn WHERE deleted_at IS NOT NULL", nativeQuery = true)
+    java.util.List<BanAn> findAllDeleted();
+
+    @org.springframework.data.jpa.repository.Query(value = "SELECT * FROM BanAn WHERE id = :id AND deleted_at IS NOT NULL", nativeQuery = true)
+    java.util.Optional<BanAn> findDeletedById(@org.springframework.data.repository.query.Param("id") Long id);
 }

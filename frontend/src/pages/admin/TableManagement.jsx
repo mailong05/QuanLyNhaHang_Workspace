@@ -8,23 +8,35 @@ const { Option } = Select;
 const TableManagement = () => {
   const [tables, setTables] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [pagination, setPagination] = useState({ current: 1, pageSize: 10, total: 0 });
   
   // State quản lý Modal
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [editingId, setEditingId] = useState(null); // Lưu maBan đang sửa
   const [form] = Form.useForm();
 
-  const fetchTables = async () => {
+  const fetchTables = async (page = 1, pageSize = 10) => {
     setLoading(true);
     try {
-      const data = await apiClient.get('/api/v1/ban-an');
+      const data = await apiClient.get(`/api/v1/ban-an?page=${page - 1}&size=${pageSize}`);
       const tableList = data.content ? data.content : data;
       setTables(tableList);
+      if (data.totalElements !== undefined) {
+        setPagination({
+          current: page,
+          pageSize: pageSize,
+          total: data.totalElements
+        });
+      }
     } catch (error) {
       message.error(error.message || 'Lỗi khi tải danh sách bàn');
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleTableChange = (newPagination) => {
+    fetchTables(newPagination.current, newPagination.pageSize);
   };
 
   useEffect(() => {
@@ -163,9 +175,11 @@ const TableManagement = () => {
         <Table 
           columns={columns} 
           dataSource={tables} 
-          rowKey="id" 
+          rowKey="maBan"
           loading={loading}
-          pagination={{ pageSize: 10 }}
+          pagination={pagination}
+          onChange={handleTableChange}
+          scroll={{ x: 'max-content' }}
         />
       </Card>
 
@@ -205,7 +219,7 @@ const TableManagement = () => {
             label="Mã Khu Vực"
             rules={[{ required: true, message: 'Vui lòng nhập mã khu vực!' }]}
           >
-            <Input placeholder="VD: KV01" />
+            <Input placeholder="VD: KV000001" />
           </Form.Item>
 
           <Form.Item

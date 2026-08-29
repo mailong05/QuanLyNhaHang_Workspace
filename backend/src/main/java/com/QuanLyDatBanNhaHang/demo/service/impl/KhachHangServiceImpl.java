@@ -85,10 +85,35 @@ public class KhachHangServiceImpl implements KhachHangService {
     }
 
     @Override
+    @org.springframework.transaction.annotation.Transactional
     public void deleteKhachHang(String maKH) {
         KhachHang kh = khachHangRepository.findByMaKHIgnoreCase(maKH)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy Khách hàng với mã: " + maKH));
+                
+        if (kh.getMaKH() != null && !kh.getMaKH().contains("_deleted_")) {
+            kh.setMaKH(kh.getMaKH() + "_deleted_" + System.currentTimeMillis());
+            khachHangRepository.saveAndFlush(kh);
+        }
+        
         khachHangRepository.delete(kh);
+    }
+
+    @Override
+    @org.springframework.transaction.annotation.Transactional
+    public void restoreKhachHang(Long id) {
+        KhachHang entity = khachHangRepository.findDeletedById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy dữ liệu đã xóa với ID: " + id));
+
+        entity.setDeletedAt(null);
+        String originalCode = entity.getMaKH().replaceAll("_deleted_.*", "");
+        
+        if (khachHangRepository.existsByMaKH(originalCode)) {
+            entity.setMaKH(originalCode + "_restored_" + System.currentTimeMillis());
+        } else {
+            entity.setMaKH(originalCode);
+        }
+        
+        khachHangRepository.save(entity);
     }
 
     private KhachHangResponseDTO convertToResponseDTO(KhachHang kh) {

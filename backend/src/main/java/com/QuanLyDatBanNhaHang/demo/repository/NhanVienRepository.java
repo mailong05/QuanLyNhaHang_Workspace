@@ -29,4 +29,12 @@ public interface NhanVienRepository extends JpaRepository<NhanVien, Long> {
     Page<NhanVien> searchByHoTenOrSdt(@Param("keyword") String keyword, Pageable pageable);
     @Query("SELECT MAX(CAST(SUBSTRING(n.maNV, 3, 6) AS int)) FROM NhanVien n")
     Integer findMaxMaNV();
+
+    boolean existsByMaNV(String maNV);
+
+    @org.springframework.data.jpa.repository.Query(value = "SELECT * FROM NhanVien WHERE deleted_at IS NOT NULL", nativeQuery = true)
+    java.util.List<NhanVien> findAllDeleted();
+
+    @org.springframework.data.jpa.repository.Query(value = "SELECT * FROM NhanVien WHERE id = :id AND deleted_at IS NOT NULL", nativeQuery = true)
+    java.util.Optional<NhanVien> findDeletedById(@org.springframework.data.repository.query.Param("id") Long id);
 }

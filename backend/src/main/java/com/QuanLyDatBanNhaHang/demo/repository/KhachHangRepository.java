@@ -29,4 +29,12 @@ public interface KhachHangRepository extends JpaRepository<KhachHang, Long> {
     Page<KhachHang> searchByHoTenOrSdt(@Param("keyword") String keyword, Pageable pageable);
     @Query("SELECT MAX(CAST(SUBSTRING(k.maKH, 3, 6) AS int)) FROM KhachHang k")
     Integer findMaxMaKH();
+
+    boolean existsByMaKH(String maKH);
+
+    @org.springframework.data.jpa.repository.Query(value = "SELECT * FROM KhachHang WHERE deleted_at IS NOT NULL", nativeQuery = true)
+    java.util.List<KhachHang> findAllDeleted();
+
+    @org.springframework.data.jpa.repository.Query(value = "SELECT * FROM KhachHang WHERE id = :id AND deleted_at IS NOT NULL", nativeQuery = true)
+    java.util.Optional<KhachHang> findDeletedById(@org.springframework.data.repository.query.Param("id") Long id);
 }

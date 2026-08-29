@@ -12,4 +12,5 @@ public interface KhuyenMaiService {
     KhuyenMaiResponseDTO createKhuyenMai(KhuyenMaiCreateRequestDTO requestDTO);
     KhuyenMaiResponseDTO updateKhuyenMai(String maKM, KhuyenMaiUpdateRequestDTO requestDTO);
     void deleteKhuyenMai(String maKM);
+    void restoreKhuyenMai(Long id);
 }

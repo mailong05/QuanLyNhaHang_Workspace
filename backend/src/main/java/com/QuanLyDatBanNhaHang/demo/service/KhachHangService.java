@@ -13,4 +13,5 @@ public interface KhachHangService {
     KhachHangResponseDTO createKhachHang(KhachHangCreateRequestDTO requestDTO);
     KhachHangResponseDTO updateKhachHang(String maKH, KhachHangUpdateRequestDTO requestDTO);
     void deleteKhachHang(String maKH);
+    void restoreKhachHang(Long id);
 }
