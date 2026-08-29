@@ -29,4 +29,7 @@ public interface HoaDonRepository extends JpaRepository<HoaDon, Long> {
 
     @Query("SELECT SUM(h.tongThanhToan) FROM HoaDon h WHERE h.thoiGianThanhToan BETWEEN :start AND :end AND h.trangThaiThanhToan = 'DA_THANH_TOAN' AND h.phuongThucTT = 'TIEN_MAT'")
     java.math.BigDecimal sumTienMatByDateRange(@org.springframework.data.repository.query.Param("start") java.time.LocalDateTime start, @org.springframework.data.repository.query.Param("end") java.time.LocalDateTime end);
+
+    @Query("SELECT h FROM HoaDon h WHERE h.trangThaiThanhToan = 'DA_THANH_TOAN' ORDER BY h.thoiGianThanhToan DESC")
+    java.util.List<HoaDon> findRecentTransactions(Pageable pageable);
 }

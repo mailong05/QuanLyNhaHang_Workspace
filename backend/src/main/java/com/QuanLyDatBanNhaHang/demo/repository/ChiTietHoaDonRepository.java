@@ -19,4 +19,13 @@ public interface ChiTietHoaDonRepository extends JpaRepository<ChiTietHoaDon, Lo
     Page<ChiTietHoaDon> findAllWithRelations(Pageable pageable);
     @Query("SELECT x FROM ChiTietHoaDon x JOIN FETCH x.hoaDon h JOIN FETCH x.monAn m WHERE x.id = :id")
     Optional<ChiTietHoaDon> findByIdWithRelations(@Param("id") Long id);
+
+    @Query(value = "SELECT m.tenMon as tenMon, SUM(c.soLuong) as soLuong, SUM(c.thanhTien) as doanhThu " +
+                   "FROM ChiTietHoaDon c " +
+                   "JOIN MonAn m ON c.maMon = m.id " +
+                   "JOIN HoaDon h ON c.maHD = h.id " +
+                   "WHERE h.thoiGianThanhToan BETWEEN :start AND :end AND h.trangThaiThanhToan = 'DA_THANH_TOAN' " +
+                   "GROUP BY m.id, m.tenMon " +
+                   "ORDER BY soLuong DESC", nativeQuery = true)
+    List<com.QuanLyDatBanNhaHang.demo.dto.projection.TopItemProjection> getTopItems(@Param("start") java.time.LocalDateTime start, @Param("end") java.time.LocalDateTime end);
 }

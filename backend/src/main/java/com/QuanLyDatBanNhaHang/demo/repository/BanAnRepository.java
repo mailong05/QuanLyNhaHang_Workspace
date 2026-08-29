@@ -26,6 +26,9 @@ public interface BanAnRepository extends JpaRepository<BanAn, Long> {
 
     boolean existsByMaBan(String maBan);
 
+    @Query("SELECT COUNT(b) FROM BanAn b WHERE b.trangThai IN (:trangThais)")
+    Long countByTrangThaiIn(@Param("trangThais") java.util.List<com.QuanLyDatBanNhaHang.demo.enums.TrangThaiBanAn> trangThais);
+
     @org.springframework.data.jpa.repository.Query(value = "SELECT * FROM BanAn WHERE deleted_at IS NOT NULL", nativeQuery = true)
     java.util.List<BanAn> findAllDeleted();
 
