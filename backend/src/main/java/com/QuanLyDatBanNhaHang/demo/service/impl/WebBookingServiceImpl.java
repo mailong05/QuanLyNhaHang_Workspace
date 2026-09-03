@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -76,7 +77,7 @@ public class WebBookingServiceImpl implements WebBookingService {
                 .soLuongNguoi(request.getSoLuongNguoi())
                 .ghiChu("Khách đặt qua Web. " + (request.getGhiChu() != null ? request.getGhiChu() : ""))
                 .trangThai(TrangThaiPhieuDatBan.CHO_XAC_NHAN)
-                .tienDatCoc(0.0)
+                .tienDatCoc(BigDecimal.ZERO)
                 .khachHang(khachHang)
                 .nhanVien(null) // Cho phép NULL vì khách tự đặt
                 .build();

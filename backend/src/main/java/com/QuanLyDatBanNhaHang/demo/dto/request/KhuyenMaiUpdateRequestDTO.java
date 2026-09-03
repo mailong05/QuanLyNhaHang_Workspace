@@ -1,5 +1,6 @@
 package com.QuanLyDatBanNhaHang.demo.dto.request;
 
+import java.math.BigDecimal;
 import com.QuanLyDatBanNhaHang.demo.enums.TrangThaiKhuyenMai;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -21,7 +22,7 @@ public class KhuyenMaiUpdateRequestDTO {
     private String tenKM;
 
     @NotNull(message = "Giá trị giảm không được để trống")
-    private Double giaTriGiam;
+    private BigDecimal giaTriGiam;
 
     @NotNull(message = "Ngày bắt đầu không được để trống")
     private LocalDate ngayBatDau;
@@ -29,7 +30,7 @@ public class KhuyenMaiUpdateRequestDTO {
     @NotNull(message = "Ngày kết thúc không được để trống")
     private LocalDate ngayKetThuc;
 
-    private Double dieuKienToiThieu;
+    private BigDecimal dieuKienToiThieu;
 
     @NotNull(message = "Trạng thái không được để trống")
     private TrangThaiKhuyenMai trangThai;

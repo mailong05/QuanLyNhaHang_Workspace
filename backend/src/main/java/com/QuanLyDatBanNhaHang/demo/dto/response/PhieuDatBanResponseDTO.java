@@ -1,5 +1,6 @@
 package com.QuanLyDatBanNhaHang.demo.dto.response;
 
+import java.math.BigDecimal;
 import com.QuanLyDatBanNhaHang.demo.enums.TrangThaiPhieuDatBan;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -23,7 +24,7 @@ public class PhieuDatBanResponseDTO {
     private Integer soLuongNguoi;
     private String ghiChu;
     private TrangThaiPhieuDatBan trangThai;
-    private Double tienDatCoc;
+    private BigDecimal tienDatCoc;
     
     private String maKH;
     private String hoTenKH;

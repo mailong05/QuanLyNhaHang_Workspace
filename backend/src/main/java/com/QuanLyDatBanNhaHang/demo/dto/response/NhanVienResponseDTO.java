@@ -1,5 +1,6 @@
 package com.QuanLyDatBanNhaHang.demo.dto.response;
 
+import java.math.BigDecimal;
 import com.QuanLyDatBanNhaHang.demo.enums.ChucVuNhanVien;
 import com.QuanLyDatBanNhaHang.demo.enums.TrangThaiNhanVien;
 import lombok.AllArgsConstructor;
@@ -24,7 +25,7 @@ public class NhanVienResponseDTO {
     private String email;
     private ChucVuNhanVien chucVu;
     private LocalDate ngayVaoLam;
-    private Double luongCoBan;
+    private BigDecimal luongCoBan;
     private TrangThaiNhanVien trangThai;
     
     private String username;

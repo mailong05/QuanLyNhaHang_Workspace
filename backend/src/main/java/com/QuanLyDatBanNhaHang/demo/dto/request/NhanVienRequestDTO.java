@@ -1,5 +1,6 @@
 package com.QuanLyDatBanNhaHang.demo.dto.request;
 
+import java.math.BigDecimal;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -19,7 +20,7 @@ public class NhanVienRequestDTO {
     private String sdt;
     private String chucVu;
     private LocalDate ngayVaoLam;
-    private Double luongCoBan;
+    private BigDecimal luongCoBan;
     private String trangThai;
 }
 

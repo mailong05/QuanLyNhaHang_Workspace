@@ -1,5 +1,6 @@
 package com.QuanLyDatBanNhaHang.demo.dto.request;
 
+import java.math.BigDecimal;
 import com.QuanLyDatBanNhaHang.demo.enums.TrangThaiThue;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -21,7 +22,7 @@ public class ThueCreateRequestDTO {
     private String tenThue;
 
     @NotNull(message = "Thuế suất không được để trống")
-    private Double thueSuat;
+    private BigDecimal thueSuat;
 
     @NotNull(message = "Trạng thái không được để trống")
     private TrangThaiThue trangThai;

@@ -1,5 +1,6 @@
 package com.QuanLyDatBanNhaHang.demo.dto.request;
 
+import java.math.BigDecimal;
 import com.QuanLyDatBanNhaHang.demo.enums.TrangThaiMonAn;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -19,7 +20,7 @@ public class MonAnUpdateRequestDTO {
     private String tenMon;
 
     @NotNull(message = "Đơn giá không được để trống")
-    private Double donGia;
+    private BigDecimal donGia;
 
     private String donViTinh;
 

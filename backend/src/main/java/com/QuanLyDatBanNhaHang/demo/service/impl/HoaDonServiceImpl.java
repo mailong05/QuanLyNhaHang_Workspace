@@ -1,5 +1,6 @@
 package com.QuanLyDatBanNhaHang.demo.service.impl;
 
+import java.math.BigDecimal;
 import com.QuanLyDatBanNhaHang.demo.dto.request.ChiTietHoaDonCreateRequestDTO;
 import com.QuanLyDatBanNhaHang.demo.dto.request.HoaDonCreateRequestDTO;
 import com.QuanLyDatBanNhaHang.demo.dto.request.HoaDonUpdateRequestDTO;
@@ -81,7 +82,7 @@ public class HoaDonServiceImpl implements HoaDonService {
             if (ngayTao.isBefore(km.getNgayBatDau()) || ngayTao.isAfter(km.getNgayKetThuc())) {
                 throw new IllegalArgumentException("Khuyến mãi không nằm trong thời gian áp dụng.");
             }
-            if (requestDTO.getTongTienGoc() < km.getDieuKienToiThieu()) {
+            if (requestDTO.getTongTienGoc().compareTo(km.getDieuKienToiThieu()) < 0) {
                 throw new IllegalArgumentException("Chưa đạt điều kiện tối thiểu để áp dụng khuyến mãi.");
             }
         }
@@ -111,7 +112,7 @@ public class HoaDonServiceImpl implements HoaDonService {
                 MonAn ma = monAnRepository.findByMaMonIgnoreCase(cReq.getMaMon())
                         .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy Món ăn: " + cReq.getMaMon()));
                 
-                Double thanhTien = ma.getDonGia() * cReq.getSoLuong();
+                BigDecimal thanhTien = ma.getDonGia().multiply(BigDecimal.valueOf(cReq.getSoLuong()));
                 
                 ChiTietHoaDon ct = ChiTietHoaDon.builder()
                         .hoaDon(hd)
@@ -159,7 +160,7 @@ public class HoaDonServiceImpl implements HoaDonService {
             if (ngayTao.isBefore(km.getNgayBatDau()) || ngayTao.isAfter(km.getNgayKetThuc())) {
                 throw new IllegalArgumentException("Khuyến mãi không nằm trong thời gian áp dụng.");
             }
-            if (requestDTO.getTongTienGoc() < km.getDieuKienToiThieu()) {
+            if (requestDTO.getTongTienGoc().compareTo(km.getDieuKienToiThieu()) < 0) {
                 throw new IllegalArgumentException("Chưa đạt điều kiện tối thiểu để áp dụng khuyến mãi.");
             }
         }
@@ -172,7 +173,7 @@ public class HoaDonServiceImpl implements HoaDonService {
                 MonAn ma = monAnRepository.findByMaMonIgnoreCase(cReq.getMaMon())
                         .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy Món ăn: " + cReq.getMaMon()));
                 
-                Double thanhTien = ma.getDonGia() * cReq.getSoLuong();
+                BigDecimal thanhTien = ma.getDonGia().multiply(BigDecimal.valueOf(cReq.getSoLuong()));
                 
                 ChiTietHoaDon ct = ChiTietHoaDon.builder()
                         .hoaDon(hd)

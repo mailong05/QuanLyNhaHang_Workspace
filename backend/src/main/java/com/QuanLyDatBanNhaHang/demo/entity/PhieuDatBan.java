@@ -1,5 +1,6 @@
 package com.QuanLyDatBanNhaHang.demo.entity;
 
+import java.math.BigDecimal;
 import jakarta.persistence.*;
 import org.hibernate.annotations.Nationalized;
 import com.QuanLyDatBanNhaHang.demo.enums.*;
@@ -48,7 +49,7 @@ public class PhieuDatBan extends BaseEntity {
     private TrangThaiPhieuDatBan trangThai;
 
     @Column(name = "tienDatCoc")
-    private Double tienDatCoc;
+    private BigDecimal tienDatCoc;
 
     // SỬA Ở ĐÂY: Thêm LAZY và chặn đệ quy
     @ManyToOne(fetch = FetchType.LAZY)

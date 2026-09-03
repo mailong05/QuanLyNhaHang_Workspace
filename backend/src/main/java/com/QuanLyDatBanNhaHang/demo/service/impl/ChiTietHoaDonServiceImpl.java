@@ -1,5 +1,6 @@
 package com.QuanLyDatBanNhaHang.demo.service.impl;
 
+import java.math.BigDecimal;
 import com.QuanLyDatBanNhaHang.demo.service.ChiTietHoaDonService;
 import com.QuanLyDatBanNhaHang.demo.dto.request.ChiTietHoaDonCreateRequestDTO;
 import com.QuanLyDatBanNhaHang.demo.dto.request.ChiTietHoaDonUpdateRequestDTO;
@@ -50,7 +51,7 @@ public class ChiTietHoaDonServiceImpl implements ChiTietHoaDonService {
         MonAn ma = monAnRepository.findByMaMonIgnoreCase(requestDTO.getMaMon())
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy Món ăn: " + requestDTO.getMaMon()));
 
-        Double thanhTien = ma.getDonGia() * requestDTO.getSoLuong();
+        BigDecimal thanhTien = ma.getDonGia().multiply(BigDecimal.valueOf(requestDTO.getSoLuong()));
 
         ChiTietHoaDon chiTiet = ChiTietHoaDon.builder()
                 .hoaDon(hd)

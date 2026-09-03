@@ -1,5 +1,6 @@
 package com.QuanLyDatBanNhaHang.demo.dto.response;
 
+import java.math.BigDecimal;
 import com.QuanLyDatBanNhaHang.demo.enums.PhuongThucThanhToanHoaDon;
 import com.QuanLyDatBanNhaHang.demo.enums.TrangThaiThanhToanHoaDon;
 import lombok.AllArgsConstructor;
@@ -20,16 +21,16 @@ import java.util.List;
 public class HoaDonResponseDTO {
     private Long id;
     private String maHD;
-    private Double thueSuat;
-    private Double tienThue;
-    private Double tyLePhiDV;
-    private Double tienPhiDV;
+    private BigDecimal thueSuat;
+    private BigDecimal tienThue;
+    private BigDecimal tyLePhiDV;
+    private BigDecimal tienPhiDV;
     private LocalDateTime ngayTao;
     private LocalTime gioVao;
     private LocalTime gioRa;
-    private Double tongTienGoc;
-    private Double tienGiamGia;
-    private Double tongThanhToan;
+    private BigDecimal tongTienGoc;
+    private BigDecimal tienGiamGia;
+    private BigDecimal tongThanhToan;
     private PhuongThucThanhToanHoaDon phuongThucTT;
     private TrangThaiThanhToanHoaDon trangThaiThanhToan;
     
