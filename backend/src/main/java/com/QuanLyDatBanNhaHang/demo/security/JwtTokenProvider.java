@@ -15,7 +15,7 @@ public class JwtTokenProvider {
     // Khóa bí mật JWT (Nên đặt trong application.properties ở thực tế)
     private final String jwtSecret = "DUMMY_SECRET_KEY_MUST_BE_LONG_ENOUGH_FOR_HMAC_SHA_256_AT_LEAST_32_BYTES_123456789";
     // Thời gian sống của token: 1 ngày (86400000 ms)
-    private final int jwtExpirationMs = 86400000;
+    private final int jwtExpirationMs = 3600000; // 1 hour
 
     private SecretKey key() {
         return Keys.hmacShaKeyFor(Decoders.BASE64.decode(

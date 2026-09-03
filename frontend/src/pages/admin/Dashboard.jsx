@@ -32,7 +32,7 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const token = localStorage.getItem('accessToken');
+        const token = sessionStorage.getItem('accessToken');
         const headers = token ? { Authorization: `Bearer ${token}` } : {};
         
         const [overviewRes, transRes, itemsRes, chartRes] = await Promise.all([

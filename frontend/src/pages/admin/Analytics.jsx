@@ -20,7 +20,7 @@ const Analytics = () => {
   useEffect(() => {
     const fetchAnalytics = async () => {
       try {
-        const token = localStorage.getItem('accessToken');
+        const token = sessionStorage.getItem('accessToken');
         const headers = token ? { Authorization: `Bearer ${token}` } : {};
 
         const [itemsRes, chartRes] = await Promise.all([

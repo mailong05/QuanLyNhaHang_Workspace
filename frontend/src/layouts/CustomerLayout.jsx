@@ -10,20 +10,20 @@ const CustomerLayout = () => {
   const navigate = useNavigate();
   const location = useLocation();
   
-  // Mock Auth State - In real app, read from Context or localStorage
+  // Mock Auth State - In real app, read from Context or sessionStorage
   const [isLoggedIn, setIsLoggedIn] = useState(false); 
 
   // Auto detect if token exists to flip mock state for testing purposes
   useEffect(() => {
-    if (localStorage.getItem('accessToken')) {
+    if (sessionStorage.getItem('accessToken')) {
         setIsLoggedIn(true);
     }
   }, []);
 
   const handleLogout = () => {
     setIsLoggedIn(false);
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('role');
+    sessionStorage.removeItem('accessToken');
+    sessionStorage.removeItem('role');
     navigate('/');
   };
 

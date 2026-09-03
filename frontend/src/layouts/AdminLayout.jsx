@@ -16,14 +16,14 @@ const AdminLayout = () => {
   const location = useLocation();
 
   const handleLogout = () => {
-    // Xóa token và role khỏi localStorage
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('role');
+    // Xóa token và role khỏi sessionStorage
+    sessionStorage.removeItem('accessToken');
+    sessionStorage.removeItem('role');
     // Điều hướng về trang chủ
     navigate('/');
   };
 
-  const role = localStorage.getItem('role') || 'STAFF';
+  const role = sessionStorage.getItem('role') || 'STAFF';
 
   const confirmLogout = () => {
     Modal.confirm({
@@ -126,8 +126,18 @@ const AdminLayout = () => {
           height: 32, 
           margin: 16, 
           background: 'rgba(255, 255, 255, 0.2)',
-          borderRadius: 6
-        }} />
+          borderRadius: 6,
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          color: 'white',
+          fontWeight: 'bold',
+          fontSize: '16px',
+          overflow: 'hidden',
+          whiteSpace: 'nowrap'
+        }}>
+          {collapsed ? 'VW' : 'VerWeb'}
+        </div>
         <Menu 
           theme="dark" 
           defaultSelectedKeys={[location.pathname]} 

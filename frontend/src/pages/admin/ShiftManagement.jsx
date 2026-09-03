@@ -40,7 +40,7 @@ const ShiftManagement = () => {
   const totalOut = calculateTotal(outDenoms);
 
   const getHeaders = () => {
-    const token = localStorage.getItem('accessToken');
+    const token = sessionStorage.getItem('accessToken');
     return token ? { Authorization: `Bearer ${token}` } : {};
   };
 
