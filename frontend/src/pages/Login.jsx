@@ -11,9 +11,9 @@ const Login = () => {
 
   // Kiểm tra nếu đã đăng nhập thì đá văng ra khỏi trang Login
   useEffect(() => {
-    const token = localStorage.getItem('accessToken');
+    const token = sessionStorage.getItem('accessToken');
     if (token) {
-      const role = localStorage.getItem('role');
+      const role = sessionStorage.getItem('role');
       if (['ROLE_ADMIN', 'ROLE_STAFF', 'ADMIN', 'STAFF', 'NHAN_VIEN', 'QUAN_LY'].includes(role)) {
         navigate('/admin');
       } else {
@@ -34,9 +34,9 @@ const Login = () => {
       // Giả định backend trả về token và role, hoặc fallback
       const role = data.role || 'ROLE_CUSTOMER'; // Nếu không có, gán mặc định là CUSTOMER
       
-      // Lưu token và role vào localStorage
-      localStorage.setItem('accessToken', data.accessToken);
-      localStorage.setItem('role', role);
+      // Lưu token và role vào sessionStorage
+      sessionStorage.setItem('accessToken', data.accessToken);
+      sessionStorage.setItem('role', role);
       
       message.success('Đăng nhập thành công!');
       

@@ -9,8 +9,8 @@ const apiClient = axios.create({
 // Request Interceptor
 apiClient.interceptors.request.use(
   (config) => {
-    // Tự động lấy accessToken từ localStorage và đính kèm vào Header
-    const token = localStorage.getItem('accessToken');
+    // Tự động lấy accessToken từ sessionStorage và đính kèm vào Header
+    const token = sessionStorage.getItem('accessToken');
     if (token) {
       config.headers['Authorization'] = `Bearer ${token}`;
     }
@@ -39,7 +39,7 @@ apiClient.interceptors.response.use(
     if (code === 401) {
       // Chưa xác thực
       console.error('Lỗi 401: Chưa xác thực hoặc Token hết hạn!');
-      localStorage.removeItem('accessToken');
+      sessionStorage.removeItem('accessToken');
       if (window.location.pathname !== '/login') {
         message.error("Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!");
         window.location.href = '/login';

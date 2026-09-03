@@ -3,8 +3,8 @@ import { Navigate, Outlet } from 'react-router-dom';
 import { Result, Button } from 'antd';
 
 const ProtectedRoute = ({ allowedRoles }) => {
-  const token = localStorage.getItem('accessToken');
-  const userRole = localStorage.getItem('role');
+  const token = sessionStorage.getItem('accessToken');
+  const userRole = sessionStorage.getItem('role');
 
   // Nếu không có token, chuyển hướng về trang đăng nhập
   if (!token) {
