@@ -1,5 +1,6 @@
 package com.QuanLyDatBanNhaHang.demo.dto.request;
 
+import java.math.BigDecimal;
 import com.QuanLyDatBanNhaHang.demo.enums.*;
 import jakarta.validation.constraints.Pattern;
 
@@ -29,10 +30,10 @@ public class ChiTietHoaDonUpdateRequestDTO {
     private Integer soLuong;
 
     @NotNull(message = "Đơn giá lưu trữ không được để trống")
-    private Double donGiaLuuTru;
+    private BigDecimal donGiaLuuTru;
 
     private String ghiChu;
 
     @NotNull(message = "Thành tiền không được để trống")
-    private Double thanhTien;
+    private BigDecimal thanhTien;
 }

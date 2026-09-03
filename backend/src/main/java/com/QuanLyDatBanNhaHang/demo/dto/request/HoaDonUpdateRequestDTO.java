@@ -1,5 +1,6 @@
 package com.QuanLyDatBanNhaHang.demo.dto.request;
 
+import java.math.BigDecimal;
 import com.QuanLyDatBanNhaHang.demo.enums.PhuongThucThanhToanHoaDon;
 import com.QuanLyDatBanNhaHang.demo.enums.TrangThaiThanhToanHoaDon;
 import jakarta.validation.Valid;
@@ -19,13 +20,13 @@ import java.util.List;
 @Builder
 public class HoaDonUpdateRequestDTO {
     
-    private Double thueSuat;
-    private Double tienThue;
-    private Double tyLePhiDV;
-    private Double tienPhiDV;
-    private Double tongTienGoc;
-    private Double tienGiamGia;
-    private Double tongThanhToan;
+    private BigDecimal thueSuat;
+    private BigDecimal tienThue;
+    private BigDecimal tyLePhiDV;
+    private BigDecimal tienPhiDV;
+    private BigDecimal tongTienGoc;
+    private BigDecimal tienGiamGia;
+    private BigDecimal tongThanhToan;
     
     private PhuongThucThanhToanHoaDon phuongThucTT;
     

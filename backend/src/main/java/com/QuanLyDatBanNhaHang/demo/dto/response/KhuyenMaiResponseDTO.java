@@ -1,5 +1,6 @@
 package com.QuanLyDatBanNhaHang.demo.dto.response;
 
+import java.math.BigDecimal;
 import com.QuanLyDatBanNhaHang.demo.enums.TrangThaiKhuyenMai;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -18,9 +19,9 @@ public class KhuyenMaiResponseDTO {
     private Long id;
     private String maKM;
     private String tenKM;
-    private Double giaTriGiam;
+    private BigDecimal giaTriGiam;
     private LocalDate ngayBatDau;
     private LocalDate ngayKetThuc;
-    private Double dieuKienToiThieu;
+    private BigDecimal dieuKienToiThieu;
     private TrangThaiKhuyenMai trangThai;
 }

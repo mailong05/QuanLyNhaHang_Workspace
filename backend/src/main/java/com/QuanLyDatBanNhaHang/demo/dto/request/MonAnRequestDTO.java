@@ -1,5 +1,6 @@
 package com.QuanLyDatBanNhaHang.demo.dto.request;
 
+import java.math.BigDecimal;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -14,7 +15,7 @@ import lombok.Setter;
 public class MonAnRequestDTO {
     private String maMon;
     private String tenMon;
-    private Double donGia;
+    private BigDecimal donGia;
     private String donViTinh;
     private String tenLoai;
     private String trangThai;

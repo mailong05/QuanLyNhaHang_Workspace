@@ -58,7 +58,7 @@ public class ReportServiceImpl implements ReportService {
                 .map(h -> RecentTransactionDTO.builder()
                         .maHD(h.getMaHD())
                         .thoiGianThanhToan(h.getThoiGianThanhToan())
-                        .tongTien(BigDecimal.valueOf(h.getTongThanhToan()))
+                        .tongTien(h.getTongThanhToan())
                         .phuongThucThanhToan(h.getPhuongThucTT() != null ? h.getPhuongThucTT().name() : "")
                         .build())
                 .collect(Collectors.toList());

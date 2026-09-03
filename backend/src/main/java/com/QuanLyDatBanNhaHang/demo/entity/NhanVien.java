@@ -1,5 +1,6 @@
 package com.QuanLyDatBanNhaHang.demo.entity;
 
+import java.math.BigDecimal;
 import jakarta.persistence.*;
 import org.hibernate.annotations.Nationalized;
 import com.QuanLyDatBanNhaHang.demo.enums.*;
@@ -52,7 +53,7 @@ public class NhanVien extends BaseEntity {
     private LocalDate ngayVaoLam;
 
     @Column(name = "luongCoBan", nullable = false)
-    private Double luongCoBan;
+    private BigDecimal luongCoBan;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "trangThai", nullable = false, length = 50)

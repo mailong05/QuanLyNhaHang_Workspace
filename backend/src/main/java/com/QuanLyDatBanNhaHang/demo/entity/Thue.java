@@ -1,5 +1,6 @@
 package com.QuanLyDatBanNhaHang.demo.entity;
 
+import java.math.BigDecimal;
 import jakarta.persistence.*;
 import org.hibernate.annotations.Nationalized;
 import com.QuanLyDatBanNhaHang.demo.enums.*;
@@ -34,7 +35,7 @@ public class Thue extends BaseEntity {
     private String tenThue;
 
     @Column(name = "thueSuat", nullable = false)
-    private Double thueSuat;
+    private BigDecimal thueSuat;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "trangThai", nullable = false, length = 50)

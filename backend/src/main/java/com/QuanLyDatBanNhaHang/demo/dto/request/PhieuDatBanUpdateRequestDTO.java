@@ -1,5 +1,6 @@
 package com.QuanLyDatBanNhaHang.demo.dto.request;
 
+import java.math.BigDecimal;
 import com.QuanLyDatBanNhaHang.demo.enums.TrangThaiPhieuDatBan;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -27,7 +28,7 @@ public class PhieuDatBanUpdateRequestDTO {
     @NotNull(message = "Trạng thái không được để trống")
     private TrangThaiPhieuDatBan trangThai;
 
-    private Double tienDatCoc;
+    private BigDecimal tienDatCoc;
 
     @Valid
     private List<ChiTietPhieuDatBanCreateRequestDTO> chiTiets;

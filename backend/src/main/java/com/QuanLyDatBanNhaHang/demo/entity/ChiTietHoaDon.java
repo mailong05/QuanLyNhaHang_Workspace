@@ -1,5 +1,6 @@
 package com.QuanLyDatBanNhaHang.demo.entity;
 
+import java.math.BigDecimal;
 import jakarta.persistence.*;
 import com.QuanLyDatBanNhaHang.demo.enums.*;
 import jakarta.persistence.EnumType;
@@ -27,13 +28,13 @@ public class ChiTietHoaDon extends BaseEntity {
     private Integer soLuong;
 
     @Column(name = "donGiaLuuTru", nullable = false)
-    private Double donGiaLuuTru;
+    private BigDecimal donGiaLuuTru;
 
     @Column(name = "ghiChu", length = 255)
     private String ghiChu;
 
     @Column(name = "thanhTien", nullable = false)
-    private Double thanhTien;
+    private BigDecimal thanhTien;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "maHD", nullable = false)

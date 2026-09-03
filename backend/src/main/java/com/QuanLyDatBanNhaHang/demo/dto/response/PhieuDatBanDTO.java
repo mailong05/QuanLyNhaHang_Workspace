@@ -1,5 +1,6 @@
 package com.QuanLyDatBanNhaHang.demo.dto.response;
 
+import java.math.BigDecimal;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -27,7 +28,7 @@ public class PhieuDatBanDTO {
     private Integer soLuongNguoi;
     private String ghiChu;
     private String trangThai;
-    private Double tienDatCoc;
+    private BigDecimal tienDatCoc;
 
     // Thông tin khách hàng (bốc ra từ quan hệ ManyToOne)
     private String maKH;

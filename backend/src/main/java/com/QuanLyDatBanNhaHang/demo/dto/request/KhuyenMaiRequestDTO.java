@@ -1,5 +1,6 @@
 package com.QuanLyDatBanNhaHang.demo.dto.request;
 
+import java.math.BigDecimal;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -16,10 +17,10 @@ import java.time.LocalDate;
 public class KhuyenMaiRequestDTO {
     private String maKM;
     private String tenKM;
-    private Double giaTriGiam;
+    private BigDecimal giaTriGiam;
     private LocalDate ngayBatDau;
     private LocalDate ngayKetThuc;
-    private Double dieuKienToiThieu;
+    private BigDecimal dieuKienToiThieu;
     private String trangThai;
 }
 

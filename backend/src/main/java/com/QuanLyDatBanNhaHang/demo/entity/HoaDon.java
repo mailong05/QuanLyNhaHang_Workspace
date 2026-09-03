@@ -1,5 +1,6 @@
 package com.QuanLyDatBanNhaHang.demo.entity;
 
+import java.math.BigDecimal;
 import jakarta.persistence.*;
 import com.QuanLyDatBanNhaHang.demo.enums.*;
 import jakarta.persistence.EnumType;
@@ -31,16 +32,16 @@ public class HoaDon extends BaseEntity {
     private String maHD;
 
     @Column(name = "thueSuat")
-    private Double thueSuat;
+    private BigDecimal thueSuat;
 
     @Column(name = "tienThue")
-    private Double tienThue;
+    private BigDecimal tienThue;
 
     @Column(name = "tyLePhiDV")
-    private Double tyLePhiDV;
+    private BigDecimal tyLePhiDV;
 
     @Column(name = "tienPhiDV")
-    private Double tienPhiDV;
+    private BigDecimal tienPhiDV;
 
     @Column(name = "ngayTao")
     private LocalDateTime ngayTao;
@@ -55,13 +56,13 @@ public class HoaDon extends BaseEntity {
     private LocalTime gioRa;
 
     @Column(name = "tongTienGoc")
-    private Double tongTienGoc;
+    private BigDecimal tongTienGoc;
 
     @Column(name = "tienGiamGia")
-    private Double tienGiamGia;
+    private BigDecimal tienGiamGia;
 
     @Column(name = "tongThanhToan")
-    private Double tongThanhToan;
+    private BigDecimal tongThanhToan;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "phuongThucTT", length = 50)

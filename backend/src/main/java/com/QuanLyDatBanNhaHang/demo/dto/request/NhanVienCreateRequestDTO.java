@@ -1,5 +1,6 @@
 package com.QuanLyDatBanNhaHang.demo.dto.request;
 
+import java.math.BigDecimal;
 import com.QuanLyDatBanNhaHang.demo.enums.ChucVuNhanVien;
 import com.QuanLyDatBanNhaHang.demo.enums.TrangThaiNhanVien;
 import jakarta.validation.constraints.NotBlank;
@@ -36,7 +37,7 @@ public class NhanVienCreateRequestDTO {
     private LocalDate ngayVaoLam;
 
     @NotNull(message = "Lương cơ bản không được để trống")
-    private Double luongCoBan;
+    private BigDecimal luongCoBan;
 
     @NotNull(message = "Trạng thái không được để trống")
     private TrangThaiNhanVien trangThai;

@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
@@ -107,11 +108,11 @@ public class PosOperationServiceImpl implements PosOperationService {
                 .gioVao(LocalTime.now())
                 .trangThaiThanhToan(TrangThaiThanhToanHoaDon.CHUA_THANH_TOAN)
                 .thueSuat(thueMacDinh.getThueSuat())
-                .tienThue(0.0)
-                .tienPhiDV(0.0)
-                .tongTienGoc(0.0)
-                .tienGiamGia(0.0)
-                .tongThanhToan(0.0)
+                .tienThue(BigDecimal.ZERO)
+                .tienPhiDV(BigDecimal.ZERO)
+                .tongTienGoc(BigDecimal.ZERO)
+                .tienGiamGia(BigDecimal.ZERO)
+                .tongThanhToan(BigDecimal.ZERO)
                 .build();
         hoaDon = hoaDonRepository.save(hoaDon);
 
@@ -162,7 +163,7 @@ public class PosOperationServiceImpl implements PosOperationService {
             // Đã có -> Cộng dồn số lượng
             ChiTietHoaDon ct = existingChiTiet.get();
             ct.setSoLuong(ct.getSoLuong() + request.getSoLuong());
-            ct.setThanhTien(ct.getSoLuong() * ct.getDonGiaLuuTru());
+            ct.setThanhTien(BigDecimal.valueOf(ct.getSoLuong()).multiply(ct.getDonGiaLuuTru()));
             chiTietHoaDonRepository.save(ct);
         } else {
             // Chưa có -> Tạo mới
@@ -171,7 +172,7 @@ public class PosOperationServiceImpl implements PosOperationService {
                     .monAn(monAn)
                     .soLuong(request.getSoLuong())
                     .donGiaLuuTru(monAn.getDonGia())
-                    .thanhTien(monAn.getDonGia() * request.getSoLuong())
+                    .thanhTien(monAn.getDonGia().multiply(BigDecimal.valueOf(request.getSoLuong())))
                     .build();
             chiTietHoaDonRepository.save(newCt);
         }
@@ -181,13 +182,15 @@ public class PosOperationServiceImpl implements PosOperationService {
                 .filter(ct -> ct.getHoaDon().getId().equals(currentHoaDonId))
                 .toList();
 
-        double tongTienGoc = allChiTiet.stream().mapToDouble(ChiTietHoaDon::getThanhTien).sum();
+        BigDecimal tongTienGoc = allChiTiet.stream().map(ChiTietHoaDon::getThanhTien).reduce(BigDecimal.ZERO, BigDecimal::add);
         hoaDon.setTongTienGoc(tongTienGoc);
         
         // Tính thuế và tổng thanh toán đơn giản
-        double tienThue = tongTienGoc * (hoaDon.getThueSuat() != null ? hoaDon.getThueSuat() / 100 : 0);
+        BigDecimal thueSuat = hoaDon.getThueSuat() != null ? hoaDon.getThueSuat().divide(BigDecimal.valueOf(100), 2, java.math.RoundingMode.HALF_UP) : BigDecimal.ZERO;
+        BigDecimal tienThue = tongTienGoc.multiply(thueSuat);
         hoaDon.setTienThue(tienThue);
-        hoaDon.setTongThanhToan(tongTienGoc + tienThue - (hoaDon.getTienGiamGia() != null ? hoaDon.getTienGiamGia() : 0));
+        BigDecimal tienGiamGia = hoaDon.getTienGiamGia() != null ? hoaDon.getTienGiamGia() : BigDecimal.ZERO;
+        hoaDon.setTongThanhToan(tongTienGoc.add(tienThue).subtract(tienGiamGia));
         
         hoaDon = hoaDonRepository.save(hoaDon);
 
@@ -210,9 +213,11 @@ public class PosOperationServiceImpl implements PosOperationService {
                 .filter(ct -> ct.getHoaDon().getId().equals(currentHoaDonId))
                 .toList();
 
-        double tongTienGoc = allChiTiet.stream().mapToDouble(ChiTietHoaDon::getThanhTien).sum();
-        double tienThue = tongTienGoc * (hoaDon.getThueSuat() != null ? hoaDon.getThueSuat() / 100 : 0);
-        double tongThanhToan = tongTienGoc + tienThue - (hoaDon.getTienGiamGia() != null ? hoaDon.getTienGiamGia() : 0);
+        BigDecimal tongTienGoc = allChiTiet.stream().map(ChiTietHoaDon::getThanhTien).reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal thueSuat = hoaDon.getThueSuat() != null ? hoaDon.getThueSuat().divide(BigDecimal.valueOf(100), 2, java.math.RoundingMode.HALF_UP) : BigDecimal.ZERO;
+        BigDecimal tienThue = tongTienGoc.multiply(thueSuat);
+        BigDecimal tienGiamGia = hoaDon.getTienGiamGia() != null ? hoaDon.getTienGiamGia() : BigDecimal.ZERO;
+        BigDecimal tongThanhToan = tongTienGoc.add(tienThue).subtract(tienGiamGia);
 
         hoaDon.setTongTienGoc(tongTienGoc);
         hoaDon.setTienThue(tienThue);
@@ -250,8 +255,8 @@ public class PosOperationServiceImpl implements PosOperationService {
                     .maMon(ct.getMonAn() != null ? ct.getMonAn().getMaMon() : null)
                     .tenMon(ct.getMonAn() != null ? ct.getMonAn().getTenMon() : null)
                     .soLuong(ct.getSoLuong())
-                    .donGia(ct.getDonGiaLuuTru() != null ? ct.getDonGiaLuuTru() : 0)
-                    .donGiaLuuTru(ct.getDonGiaLuuTru() != null ? ct.getDonGiaLuuTru() : 0)
+                    .donGia(ct.getDonGiaLuuTru() != null ? ct.getDonGiaLuuTru() : BigDecimal.ZERO)
+                    .donGiaLuuTru(ct.getDonGiaLuuTru() != null ? ct.getDonGiaLuuTru() : BigDecimal.ZERO)
                     .thanhTien(ct.getThanhTien())
                     .ghiChu(ct.getGhiChu())
                     .build()).toList();

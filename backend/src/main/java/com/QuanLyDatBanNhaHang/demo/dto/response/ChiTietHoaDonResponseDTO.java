@@ -1,5 +1,6 @@
 package com.QuanLyDatBanNhaHang.demo.dto.response;
 
+import java.math.BigDecimal;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -16,8 +17,8 @@ public class ChiTietHoaDonResponseDTO {
     private String maMon;
     private String tenMon;
     private Integer soLuong;
-    private Double donGia;
-    private Double donGiaLuuTru;
+    private BigDecimal donGia;
+    private BigDecimal donGiaLuuTru;
     private String ghiChu;
-    private Double thanhTien;
+    private BigDecimal thanhTien;
 }
