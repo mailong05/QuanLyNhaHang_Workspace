@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Layout, Menu, Button, Dropdown, Avatar, Typography, Modal, Form, Input, Space } from 'antd';
-import { DashboardOutlined, TableOutlined, LogoutOutlined, CoffeeOutlined, TagOutlined, ScheduleOutlined, AppstoreAddOutlined, ClockCircleOutlined, LineChartOutlined, UserOutlined, KeyOutlined } from '@ant-design/icons';
+import { DashboardOutlined, TableOutlined, LogoutOutlined, CoffeeOutlined, TagOutlined, ScheduleOutlined, AppstoreAddOutlined, ClockCircleOutlined, LineChartOutlined, UserOutlined, KeyOutlined, FileTextOutlined } from '@ant-design/icons';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 
 const { Header, Sider, Content } = Layout;
@@ -101,6 +101,12 @@ const AdminLayout = () => {
       key: '/admin/shifts',
       icon: <ClockCircleOutlined />,
       label: 'Giao Ca',
+      roles: ['ADMIN', 'ROLE_ADMIN', 'STAFF', 'ROLE_STAFF', 'NHAN_VIEN', 'QUAN_LY']
+    },
+    {
+      key: '/admin/invoices',
+      icon: <FileTextOutlined />,
+      label: 'Quản lý Hóa đơn',
       roles: ['ADMIN', 'ROLE_ADMIN', 'STAFF', 'ROLE_STAFF', 'NHAN_VIEN', 'QUAN_LY']
     },
     {
