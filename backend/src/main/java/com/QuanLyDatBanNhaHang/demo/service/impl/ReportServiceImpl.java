@@ -74,17 +74,18 @@ public class ReportServiceImpl implements ReportService {
 
     @Override
     public List<Map<String, Object>> getRevenueChart() {
-        // Mock data for now, could be grouped by day
         List<Map<String, Object>> chart = new java.util.ArrayList<>();
         for (int i = 6; i >= 0; i--) {
             LocalDate date = LocalDate.now().minusDays(i);
-            LocalDateTime start = LocalDateTime.of(date, LocalTime.MIN);
-            LocalDateTime end = LocalDateTime.of(date, LocalTime.MAX);
-            BigDecimal doanhThu = hoaDonRepository.sumDoanhThuByDateRange(start, end);
-            Map<String, Object> point = new HashMap<>();
-            point.put("date", date.toString());
-            point.put("doanhThu", doanhThu != null ? doanhThu : BigDecimal.ZERO);
-            chart.add(point);
+            LocalDateTime startOfDay = LocalDateTime.of(date, LocalTime.MIN);
+            LocalDateTime endOfDay = LocalDateTime.of(date, LocalTime.MAX);
+            BigDecimal doanhThu = hoaDonRepository.sumDoanhThuByDateRange(startOfDay, endOfDay);
+            if (doanhThu == null) doanhThu = BigDecimal.ZERO;
+            
+            chart.add(Map.of(
+                "date", date.toString(),
+                "doanhThu", doanhThu
+            ));
         }
         return chart;
     }

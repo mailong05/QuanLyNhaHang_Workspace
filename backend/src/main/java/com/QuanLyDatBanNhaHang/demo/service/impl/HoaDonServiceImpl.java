@@ -100,6 +100,8 @@ public class HoaDonServiceImpl implements HoaDonService {
                 .tongThanhToan(requestDTO.getTongThanhToan())
                 .phuongThucTT(requestDTO.getPhuongThucTT())
                 .trangThaiThanhToan(requestDTO.getTrangThaiThanhToan())
+                .thoiGianThanhToan(requestDTO.getTrangThaiThanhToan() == com.QuanLyDatBanNhaHang.demo.enums.TrangThaiThanhToanHoaDon.DA_THANH_TOAN ? LocalDateTime.now() : null)
+                .gioRa(requestDTO.getTrangThaiThanhToan() == com.QuanLyDatBanNhaHang.demo.enums.TrangThaiThanhToanHoaDon.DA_THANH_TOAN ? LocalTime.now() : null)
                 .phieuDatBan(pdb)
                 .nhanVien(nv)
                 .thue(thue)
@@ -153,6 +155,12 @@ public class HoaDonServiceImpl implements HoaDonService {
         hd.setTongThanhToan(requestDTO.getTongThanhToan());
         hd.setPhuongThucTT(requestDTO.getPhuongThucTT());
         hd.setTrangThaiThanhToan(requestDTO.getTrangThaiThanhToan());
+        
+        if (requestDTO.getTrangThaiThanhToan() == com.QuanLyDatBanNhaHang.demo.enums.TrangThaiThanhToanHoaDon.DA_THANH_TOAN && hd.getThoiGianThanhToan() == null) {
+            hd.setThoiGianThanhToan(LocalDateTime.now());
+            hd.setGioRa(LocalTime.now());
+        }
+        
         hd.setThue(thue);
         
         if (km != null) {

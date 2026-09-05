@@ -224,6 +224,7 @@ public class PosOperationServiceImpl implements PosOperationService {
         hoaDon.setTongThanhToan(tongThanhToan);
         hoaDon.setTrangThaiThanhToan(TrangThaiThanhToanHoaDon.DA_THANH_TOAN);
         hoaDon.setPhuongThucTT(request.getPhuongThucTT());
+        hoaDon.setThoiGianThanhToan(LocalDateTime.now());
         hoaDon.setGioRa(LocalTime.now());
 
         hoaDon = hoaDonRepository.save(hoaDon);
