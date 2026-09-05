@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Tag, Button, Space, Card, message, Modal, Form, Input, InputNumber, Select, Popconfirm, Image } from 'antd';
-import { EditOutlined, DeleteOutlined, PlusOutlined } from '@ant-design/icons';
+import { Table, Tag, Button, Space, Card, message, Modal, Form, Input, InputNumber, Select, Popconfirm, Image, Upload } from 'antd';
+import { EditOutlined, DeleteOutlined, PlusOutlined, UploadOutlined, LoadingOutlined } from '@ant-design/icons';
 import apiClient from '../../services/apiClient';
 
 const { Option } = Select;
@@ -14,6 +14,27 @@ const MenuManagement = () => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [editingId, setEditingId] = useState(null); // Lưu maMon đang sửa
   const [form] = Form.useForm();
+  const [uploading, setUploading] = useState(false);
+
+  const customUpload = async (options) => {
+    const { file, onSuccess, onError } = options;
+    const formData = new FormData();
+    formData.append('file', file);
+    setUploading(true);
+    try {
+      const res = await apiClient.post('/api/v1/images/upload', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      form.setFieldsValue({ urlHinhAnh: res });
+      onSuccess('ok');
+      message.success('Tải ảnh lên thành công!');
+    } catch (err) {
+      onError({ err });
+      message.error('Lỗi khi tải ảnh lên');
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const fetchMenus = async (page = 1, pageSize = 10) => {
     setLoading(true);
@@ -229,11 +250,21 @@ const MenuManagement = () => {
             <Input placeholder="VD: Món khai vị, Đồ uống" />
           </Form.Item>
 
-          <Form.Item
-            name="urlHinhAnh"
-            label="Đường dẫn Hình ảnh (URL)"
-          >
-            <Input placeholder="VD: https://example.com/image.jpg" />
+          <Form.Item label="Hình ảnh" style={{ marginBottom: 0 }}>
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'start', marginBottom: '24px' }}>
+              <Form.Item name="urlHinhAnh" noStyle>
+                <Input placeholder="URL sẽ tự động hiển thị ở đây..." style={{ flex: 1 }} readOnly />
+              </Form.Item>
+              <Upload
+                customRequest={customUpload}
+                showUploadList={false}
+                accept="image/*"
+              >
+                <Button icon={uploading ? <LoadingOutlined /> : <UploadOutlined />}>
+                  {uploading ? 'Đang tải...' : 'Upload File'}
+                </Button>
+              </Upload>
+            </div>
           </Form.Item>
 
           <Form.Item

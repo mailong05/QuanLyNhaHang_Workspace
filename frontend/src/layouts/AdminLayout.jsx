@@ -136,7 +136,7 @@ const AdminLayout = () => {
           overflow: 'hidden',
           whiteSpace: 'nowrap'
         }}>
-          {collapsed ? 'VW' : 'VerWeb'}
+          {collapsed ? 'VW' : 'Ha Long Restaurant'}
         </div>
         <Menu 
           theme="dark" 
