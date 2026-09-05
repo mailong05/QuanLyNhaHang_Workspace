@@ -7,7 +7,8 @@ const { Title, Text } = Typography;
 
 const transactionColumns = [
   { title: 'Mã Hóa Đơn', dataIndex: 'maHD', key: 'maHD', render: text => <a>{text}</a> },
-  { title: 'Giờ thanh toán', dataIndex: 'thoiGianThanhToan', key: 'thoiGianThanhToan', render: val => new Date(val).toLocaleTimeString('vi-VN') },
+  { title: 'Ngày thanh toán', dataIndex: 'thoiGianThanhToan', key: 'ngayThanhToan', render: val => new Date(val).toLocaleDateString('vi-VN') },
+  { title: 'Giờ thanh toán', dataIndex: 'thoiGianThanhToan', key: 'gioThanhToan', render: val => new Date(val).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) },
   { title: 'Tổng tiền', dataIndex: 'tongTien', key: 'tongTien', render: val => <span style={{ fontWeight: 'bold' }}>{val.toLocaleString('vi-VN')} đ</span> },
   { title: 'Phương thức', dataIndex: 'phuongThucThanhToan', key: 'phuongThucThanhToan', render: val => (
     <Tag color={val === 'TIEN_MAT' ? 'green' : 'blue'}>{val === 'TIEN_MAT' ? 'Tiền mặt' : 'Chuyển khoản'}</Tag>

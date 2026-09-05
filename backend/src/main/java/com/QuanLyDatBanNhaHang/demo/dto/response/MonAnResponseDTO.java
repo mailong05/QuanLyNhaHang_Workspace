@@ -18,8 +18,8 @@ public class MonAnResponseDTO {
     private String maMon;
     private String tenMon;
     private BigDecimal donGia;
-    private String donViTinh;
-    private String tenLoai;
+    private com.QuanLyDatBanNhaHang.demo.enums.DonViTinhMonAn donViTinh;
+    private com.QuanLyDatBanNhaHang.demo.enums.LoaiMonAn tenLoai;
     private TrangThaiMonAn trangThai;
     private String urlHinhAnh;
 }

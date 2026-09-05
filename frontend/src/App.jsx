@@ -9,6 +9,7 @@ import MenuManagement from './pages/admin/MenuManagement';
 import VoucherManagement from './pages/admin/VoucherManagement';
 import BookingManagement from './pages/admin/BookingManagement';
 import POSManagement from './pages/admin/POSManagement';
+import InvoiceManagement from './pages/admin/InvoiceManagement';
 import Home from './pages/customer/Home';
 import Profile from './pages/customer/Profile';
 import MyBookings from './pages/customer/MyBookings';
@@ -40,6 +41,7 @@ function App() {
             <Route path="menu" element={<MenuManagement />} />
             <Route path="vouchers" element={<VoucherManagement />} />
             <Route path="shifts" element={<ShiftManagement />} />
+            <Route path="invoices" element={<InvoiceManagement />} />
             
             {/* Dành riêng cho ADMIN */}
             <Route element={<ProtectedRoute allowedRoles={['ROLE_ADMIN', 'ADMIN']} />}>
