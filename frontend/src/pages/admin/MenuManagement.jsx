@@ -5,6 +5,29 @@ import apiClient from '../../services/apiClient';
 
 const { Option } = Select;
 
+const DON_VI_TINH = {
+  DIA: 'Đĩa',
+  PHAN: 'Phần',
+  LY: 'Ly',
+  NOI: 'Nồi',
+  CHAI: 'Chai',
+  LON: 'Lon',
+  CUON: 'Cuốn',
+  TO: 'Tô',
+  KHAC: 'Khác'
+};
+
+const LOAI_MON_AN = {
+  MON_KHAI_VI: 'Món khai vị',
+  MON_CHINH: 'Món chính',
+  MON_TRANG_MIENG: 'Món tráng miệng',
+  DO_UONG: 'Đồ uống',
+  LAU: 'Lẩu',
+  NUONG: 'Nướng',
+  COM_MIE_CHAO: 'Cơm/Mì/Cháo',
+  KHAC: 'Khác'
+};
+
 const MenuManagement = () => {
   const [menus, setMenus] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -141,6 +164,7 @@ const MenuManagement = () => {
       title: 'Tên Loại',
       dataIndex: 'tenLoai',
       key: 'tenLoai',
+      render: (val) => LOAI_MON_AN[val] || val,
     },
     {
       title: 'Đơn Giá',
@@ -152,6 +176,7 @@ const MenuManagement = () => {
       title: 'Đơn Vị',
       dataIndex: 'donViTinh',
       key: 'donViTinh',
+      render: (val) => DON_VI_TINH[val] || val,
     },
     {
       title: 'Trạng thái',
@@ -235,19 +260,27 @@ const MenuManagement = () => {
             <InputNumber min={0} style={{ width: '100%' }} placeholder="VD: 50000" />
           </Form.Item>
 
-          <Form.Item
+                    <Form.Item
             name="donViTinh"
             label="Đơn vị tính"
           >
-            <Input placeholder="VD: Đĩa, Phần, Ly" />
+            <Select placeholder="Chọn đơn vị">
+              {Object.entries(DON_VI_TINH).map(([key, val]) => (
+                <Option key={key} value={key}>{val}</Option>
+              ))}
+            </Select>
           </Form.Item>
 
-          <Form.Item
+                    <Form.Item
             name="tenLoai"
             label="Tên Loại Món"
-            rules={[{ required: true, message: 'Vui lòng nhập phân loại!' }]}
+            rules={[{ required: true, message: 'Vui lòng chọn phân loại!' }]}
           >
-            <Input placeholder="VD: Món khai vị, Đồ uống" />
+            <Select placeholder="Chọn loại món">
+              {Object.entries(LOAI_MON_AN).map(([key, val]) => (
+                <Option key={key} value={key}>{val}</Option>
+              ))}
+            </Select>
           </Form.Item>
 
           <Form.Item label="Hình ảnh" style={{ marginBottom: 0 }}>

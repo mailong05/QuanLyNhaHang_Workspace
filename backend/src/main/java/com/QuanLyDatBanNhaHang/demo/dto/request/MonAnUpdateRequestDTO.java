@@ -22,10 +22,10 @@ public class MonAnUpdateRequestDTO {
     @NotNull(message = "Đơn giá không được để trống")
     private BigDecimal donGia;
 
-    private String donViTinh;
+    private com.QuanLyDatBanNhaHang.demo.enums.DonViTinhMonAn donViTinh;
 
-    @NotBlank(message = "Tên loại không được để trống")
-    private String tenLoai;
+    @NotNull(message = "Tên loại không được để trống")
+    private com.QuanLyDatBanNhaHang.demo.enums.LoaiMonAn tenLoai;
 
     @NotNull(message = "Trạng thái không được để trống")
     private TrangThaiMonAn trangThai;

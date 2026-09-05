@@ -44,11 +44,13 @@ public class MonAn extends BaseEntity {
 
     @Nationalized
     @Column(name = "donViTinh", length = 50)
-    private String donViTinh;
+    @Enumerated(EnumType.STRING)
+    private DonViTinhMonAn donViTinh;
 
     @Nationalized
     @Column(name = "tenLoai", nullable = false, length = 50)
-    private String tenLoai;
+    @Enumerated(EnumType.STRING)
+    private LoaiMonAn tenLoai;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "trangThai", nullable = false, length = 50)
