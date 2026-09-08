@@ -3,6 +3,7 @@ package com.QuanLyDatBanNhaHang.demo.dto.request;
 import java.math.BigDecimal;
 import com.QuanLyDatBanNhaHang.demo.enums.TrangThaiPhieuDatBan;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -29,6 +30,10 @@ public class PhieuDatBanUpdateRequestDTO {
     private TrangThaiPhieuDatBan trangThai;
 
     private BigDecimal tienDatCoc;
+
+    private String hoTenKH;
+    private String sdtKH;
+
 
     @Valid
     private List<ChiTietPhieuDatBanCreateRequestDTO> chiTiets;

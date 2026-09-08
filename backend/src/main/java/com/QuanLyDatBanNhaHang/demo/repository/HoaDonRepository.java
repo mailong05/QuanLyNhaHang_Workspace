@@ -19,6 +19,14 @@ public interface HoaDonRepository extends JpaRepository<HoaDon, Long> {
     @Query(value = "SELECT h FROM HoaDon h LEFT JOIN FETCH h.nhanVien", 
            countQuery = "SELECT COUNT(h) FROM HoaDon h")
     Page<HoaDon> findAllWithRelations(Pageable pageable);
+
+    @Query(value = "SELECT h FROM HoaDon h LEFT JOIN FETCH h.nhanVien " +
+                   "WHERE (:keyword IS NULL OR LOWER(h.maHD) LIKE LOWER(:keyword)) " +
+                   "AND (:trangThai IS NULL OR h.trangThaiThanhToan = :trangThai)",
+           countQuery = "SELECT COUNT(h) FROM HoaDon h " +
+                   "WHERE (:keyword IS NULL OR LOWER(h.maHD) LIKE LOWER(:keyword)) " +
+                   "AND (:trangThai IS NULL OR h.trangThaiThanhToan = :trangThai)")
+    Page<HoaDon> searchHoaDon(@Param("keyword") String keyword, @Param("trangThai") com.QuanLyDatBanNhaHang.demo.enums.TrangThaiThanhToanHoaDon trangThai, Pageable pageable);
     @Query("SELECT MAX(CAST(SUBSTRING(h.maHD, 3, 6) AS int)) FROM HoaDon h")
     Integer findMaxMaHD();
     @Query("SELECT SUM(h.tongThanhToan) FROM HoaDon h WHERE h.thoiGianThanhToan BETWEEN :start AND :end AND h.trangThaiThanhToan = com.QuanLyDatBanNhaHang.demo.enums.TrangThaiThanhToanHoaDon.DA_THANH_TOAN")

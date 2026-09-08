@@ -7,7 +7,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 public interface KhuyenMaiService {
-    Page<KhuyenMaiResponseDTO> getAllKhuyenMai(Pageable pageable);
+    Page<KhuyenMaiResponseDTO> getAllKhuyenMai(String keyword, String trangThai, Pageable pageable);
     KhuyenMaiResponseDTO getKhuyenMaiByMa(String maKM);
     KhuyenMaiResponseDTO createKhuyenMai(KhuyenMaiCreateRequestDTO requestDTO);
     KhuyenMaiResponseDTO updateKhuyenMai(String maKM, KhuyenMaiUpdateRequestDTO requestDTO);

@@ -9,16 +9,19 @@ const { Option } = Select;
 const VoucherManagement = () => {
   const [vouchers, setVouchers] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [searchText, setSearchText] = useState('');
+  const [filterStatus, setFilterStatus] = useState('');
+
   
   // State quản lý Modal
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [editingId, setEditingId] = useState(null); // Lưu maKM đang sửa
   const [form] = Form.useForm();
 
-  const fetchVouchers = async () => {
+  const fetchVouchers = async (page = 1, pageSize = 10, keyword = searchText, status = filterStatus) => {
     setLoading(true);
     try {
-      const data = await apiClient.get('/api/v1/khuyen-mai');
+      const data = await apiClient.get(`/api/v1/khuyen-mai?keyword=${keyword}&trangThai=${status}`);
       const voucherList = data.content ? data.content : data;
       setVouchers(voucherList);
     } catch (error) {
@@ -175,6 +178,28 @@ const VoucherManagement = () => {
         title="Quản lý Khuyến Mãi" 
         extra={<Button type="primary" icon={<PlusOutlined />} onClick={showAddModal}>Thêm Khuyến Mãi Mới</Button>}
       >
+        
+        <Space style={{ marginBottom: 16 }}>
+          <Input.Search 
+            placeholder="Tìm kiếm theo tên / mã..." 
+            allowClear 
+            onSearch={(val) => { setSearchText(val); fetchVouchers(1, 10, val, filterStatus); }} 
+            style={{ width: 250 }} 
+          />
+          <Select 
+            placeholder="Lọc theo trạng thái" 
+            allowClear 
+            style={{ width: 200 }} 
+            onChange={(val) => { setFilterStatus(val || ''); fetchVouchers(1, 10, searchText, val || ''); }}
+          >
+            
+            <Option value="DANG_HOAT_DONG">Đang hoạt động</Option>
+            <Option value="DA_KET_THUC">Đã kết thúc</Option>
+            <Option value="DANG_CHO">Đang chờ</Option>
+    
+          </Select>
+        </Space>
+
         <Table 
           columns={columns} 
           dataSource={vouchers} 

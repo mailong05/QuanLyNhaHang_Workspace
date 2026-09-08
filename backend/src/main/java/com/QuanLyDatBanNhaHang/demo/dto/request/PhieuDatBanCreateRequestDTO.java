@@ -37,6 +37,7 @@ public class PhieuDatBanCreateRequestDTO {
     @NotBlank(message = "Mã khách hàng không được để trống")
     private String maKH;
 
+
     private String maNV; // Nullable for web guest
 
     @Valid

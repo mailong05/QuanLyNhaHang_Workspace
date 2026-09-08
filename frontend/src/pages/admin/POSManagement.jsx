@@ -278,20 +278,26 @@ const POSManagement = () => {
 
   // --- ACTIONS CHO ĐẶT BÀN (MOCK) ---
   const handleReservation = () => {
-    formReservation.validateFields().then(values => {
-      message.success(`Đã nhận đặt bàn thành công cho khách ${values.hoTen}!`);
-      setIsReservationModalVisible(false);
-      formReservation.resetFields();
-      
-      // Đổi trạng thái table thành DAT_TRUOC (Mock UI)
-      setTables(prevTables => prevTables.map(t => {
-        if (t.id === selectedTable.id) {
-          const updatedTable = { ...t, trangThai: 'DAT_TRUOC' };
-          setSelectedTable(updatedTable);
-          return updatedTable;
-        }
-        return t;
-      }));
+    formReservation.validateFields().then(async values => {
+      try {
+        const payload = {
+          hoTen: values.hoTen,
+          sdt: values.sdt,
+          thoiGianDen: values.thoiGianDen.format('YYYY-MM-DD') + 'T' + values.thoiGianDen.format('HH:mm:ss'),
+          soLuongNguoi: values.soLuongNguoi,
+          ghiChu: values.ghiChu || '',
+          tienDatCoc: values.tienDatCoc || 0,
+          danhSachBanId: [selectedTable.id]
+        };
+        
+        await apiClient.post('/api/web/booking', payload);
+        message.success(`Đã tạo phiếu đặt bàn thành công cho ${values.hoTen}! (Trạng thái: Chờ xác nhận)`);
+        setIsReservationModalVisible(false);
+        formReservation.resetFields();
+        fetchTables(); // Reload tables
+      } catch (error) {
+        message.error('Lỗi khi đặt bàn: ' + (error.response?.data?.message || error.message));
+      }
     });
   };
 
@@ -646,7 +652,17 @@ const POSManagement = () => {
             <DatePicker showTime format="DD/MM/YYYY HH:mm" style={{ width: '100%' }} placeholder="Chọn ngày và giờ" />
           </Form.Item>
           <Form.Item name="soLuongNguoi" label="Số lượng người" rules={[{ required: true, message: 'Vui lòng nhập số lượng người!' }]}>
-            <InputNumber min={1} style={{ width: '100%' }} placeholder="Nhập số lượng người" />
+            <InputNumber min={1} style={{ width: '100%' }} placeholder="Nhập số lượng người" onChange={(val) => {
+                const deposit = (val && val >= 5) ? 500000 : 0;
+                formReservation.setFieldsValue({ tienDatCoc: deposit });
+            }} />
+          </Form.Item>
+          <Form.Item name="tienDatCoc" label="Tiền đặt cọc (Tự động tính theo số người)">
+            <InputNumber 
+                style={{ width: '100%' }} 
+                readOnly 
+                formatter={value => value ? value.toLocaleString('vi-VN') + ' đ' : '0 đ'} 
+            />
           </Form.Item>
           <Form.Item name="ghiChu" label="Ghi chú thêm">
             <Input.TextArea rows={3} placeholder="Ví dụ: Cần ghế trẻ em, dị ứng hải sản..." />

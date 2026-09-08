@@ -21,8 +21,11 @@ public class BanAnController {
     private final BanAnService banAnService;
 
     @GetMapping
-    public ResponseEntity<ApiResponse<Page<BanAnResponseDTO>>> getAllBanAn(Pageable pageable) {
-        return ResponseEntity.ok(ApiResponse.success(banAnService.getAllBanAn(pageable)));
+    public ResponseEntity<ApiResponse<Page<BanAnResponseDTO>>> getAllBanAn(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String trangThai,
+            Pageable pageable) {
+        return ResponseEntity.ok(ApiResponse.success(banAnService.getAllBanAn(keyword, trangThai, pageable)));
     }
 
     @GetMapping("/{maBan}")

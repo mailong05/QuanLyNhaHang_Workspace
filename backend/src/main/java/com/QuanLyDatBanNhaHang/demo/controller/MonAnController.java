@@ -21,8 +21,11 @@ public class MonAnController {
     private final MonAnService monAnService;
 
     @GetMapping
-    public ResponseEntity<ApiResponse<Page<MonAnResponseDTO>>> getAllMonAn(Pageable pageable) {
-        return ResponseEntity.ok(ApiResponse.success(monAnService.getAllMonAn(pageable)));
+    public ResponseEntity<ApiResponse<Page<MonAnResponseDTO>>> getAllMonAn(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String trangThai,
+            Pageable pageable) {
+        return ResponseEntity.ok(ApiResponse.success(monAnService.getAllMonAn(keyword, trangThai, pageable)));
     }
 
     @GetMapping("/{maMon}")

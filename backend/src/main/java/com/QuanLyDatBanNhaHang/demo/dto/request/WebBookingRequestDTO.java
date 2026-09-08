@@ -28,6 +28,7 @@ public class WebBookingRequestDTO {
 
     private String ghiChu;
 
-    @NotEmpty
     private List<Long> danhSachBanId;
+    
+    private java.math.BigDecimal tienDatCoc;
 }

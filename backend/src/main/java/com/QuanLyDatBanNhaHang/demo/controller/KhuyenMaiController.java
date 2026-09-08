@@ -21,8 +21,11 @@ public class KhuyenMaiController {
     private final KhuyenMaiService khuyenMaiService;
 
     @GetMapping
-    public ResponseEntity<ApiResponse<Page<KhuyenMaiResponseDTO>>> getAllKhuyenMai(Pageable pageable) {
-        return ResponseEntity.ok(ApiResponse.success(khuyenMaiService.getAllKhuyenMai(pageable)));
+    public ResponseEntity<ApiResponse<Page<KhuyenMaiResponseDTO>>> getAllKhuyenMai(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String trangThai,
+            Pageable pageable) {
+        return ResponseEntity.ok(ApiResponse.success(khuyenMaiService.getAllKhuyenMai(keyword, trangThai, pageable)));
     }
 
     @GetMapping("/{maKM}")

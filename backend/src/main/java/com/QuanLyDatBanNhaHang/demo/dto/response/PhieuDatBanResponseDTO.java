@@ -30,6 +30,7 @@ public class PhieuDatBanResponseDTO {
     private String hoTenKH;
     private String maNV;
     private String hoTenNV;
+    private String sdtKH;
 
     private List<ChiTietPhieuDatBanResponseDTO> chiTiets;
 }

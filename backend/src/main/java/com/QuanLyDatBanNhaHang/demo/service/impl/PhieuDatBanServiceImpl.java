@@ -136,6 +136,17 @@ public class PhieuDatBanServiceImpl implements PhieuDatBanService {
         pdb.setTrangThai(requestDTO.getTrangThai());
         pdb.setTienDatCoc(requestDTO.getTienDatCoc());
 
+        // Update KhachHang if requested
+        if (pdb.getKhachHang() != null) {
+            if (requestDTO.getHoTenKH() != null && !requestDTO.getHoTenKH().isBlank()) {
+                pdb.getKhachHang().setHoTen(requestDTO.getHoTenKH());
+            }
+            if (requestDTO.getSdtKH() != null && !requestDTO.getSdtKH().isBlank()) {
+                pdb.getKhachHang().setSdt(requestDTO.getSdtKH());
+            }
+            khachHangRepository.save(pdb.getKhachHang());
+        }
+
         // Xóa chi tiết cũ và map chi tiết mới
         if (requestDTO.getChiTiets() != null) {
             pdb.getChiTietPhieuDatBans().clear();
@@ -185,6 +196,7 @@ public class PhieuDatBanServiceImpl implements PhieuDatBanService {
                 .tienDatCoc(pdb.getTienDatCoc())
                 .maKH(pdb.getKhachHang() != null ? pdb.getKhachHang().getMaKH() : null)
                 .hoTenKH(pdb.getKhachHang() != null ? pdb.getKhachHang().getHoTen() : null)
+                .sdtKH(pdb.getKhachHang() != null ? pdb.getKhachHang().getSdt() : null)
                 .maNV(pdb.getNhanVien() != null ? pdb.getNhanVien().getMaNV() : null)
                 .hoTenNV(pdb.getNhanVien() != null ? pdb.getNhanVien().getHoTen() : null)
                 .chiTiets(chiTiets)

@@ -21,6 +21,14 @@ public interface BanAnRepository extends JpaRepository<BanAn, Long> {
     @Query(value = "SELECT b FROM BanAn b LEFT JOIN FETCH b.khuVuc", 
            countQuery = "SELECT COUNT(b) FROM BanAn b")
     Page<BanAn> findAllWithRelations(Pageable pageable);
+
+    @Query(value = "SELECT b FROM BanAn b LEFT JOIN FETCH b.khuVuc " +
+                   "WHERE (:keyword IS NULL OR LOWER(b.maBan) LIKE LOWER(:keyword)) " +
+                   "AND (:trangThai IS NULL OR b.trangThai = :trangThai)",
+           countQuery = "SELECT COUNT(b) FROM BanAn b " +
+                   "WHERE (:keyword IS NULL OR LOWER(b.maBan) LIKE LOWER(:keyword)) " +
+                   "AND (:trangThai IS NULL OR b.trangThai = :trangThai)")
+    Page<BanAn> searchBanAn(@Param("keyword") String keyword, @Param("trangThai") com.QuanLyDatBanNhaHang.demo.enums.TrangThaiBanAn trangThai, Pageable pageable);
     @Query("SELECT MAX(CAST(SUBSTRING(b.maBan, 3, 6) AS int)) FROM BanAn b")
     Integer findMaxMaBan();
 

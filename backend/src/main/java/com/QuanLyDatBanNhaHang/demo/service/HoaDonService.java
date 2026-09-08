@@ -7,7 +7,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 public interface HoaDonService {
-    Page<HoaDonResponseDTO> getAllHoaDon(Pageable pageable);
+    Page<HoaDonResponseDTO> getAllHoaDon(String keyword, String trangThai, Pageable pageable);
     HoaDonResponseDTO getHoaDonByMa(String maHD);
     HoaDonResponseDTO createHoaDon(HoaDonCreateRequestDTO requestDTO);
     HoaDonResponseDTO updateHoaDon(String maHD, HoaDonUpdateRequestDTO requestDTO);

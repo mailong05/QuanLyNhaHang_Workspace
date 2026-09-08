@@ -21,8 +21,11 @@ public class HoaDonController {
     private final HoaDonService hoaDonService;
 
     @GetMapping
-    public ResponseEntity<ApiResponse<Page<HoaDonResponseDTO>>> getAllHoaDon(Pageable pageable) {
-        return ResponseEntity.ok(ApiResponse.success(hoaDonService.getAllHoaDon(pageable)));
+    public ResponseEntity<ApiResponse<Page<HoaDonResponseDTO>>> getAllHoaDon(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String trangThai,
+            Pageable pageable) {
+        return ResponseEntity.ok(ApiResponse.success(hoaDonService.getAllHoaDon(keyword, trangThai, pageable)));
     }
 
     @GetMapping("/{maHD}")
