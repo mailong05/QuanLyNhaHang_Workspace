@@ -167,7 +167,14 @@ public class PhieuDatBanServiceImpl implements PhieuDatBanService {
     }
 
     @Override
-    @Transactional
+    public boolean checkTableAvailability(String maBan, java.time.LocalDateTime thoiGianDen) {
+        java.time.LocalDateTime start = thoiGianDen.minusHours(2);
+        java.time.LocalDateTime end = thoiGianDen.plusHours(2);
+        return chiTietPhieuDatBanRepository.findConflictingBookings(maBan, start, end, null).isEmpty();
+    }
+
+    @Override
+    @org.springframework.transaction.annotation.Transactional
     public void deletePhieuDatBan(String maPhieuDat) {
         PhieuDatBan pdb = phieuDatBanRepository.findByMaPhieuDatIgnoreCaseWithRelations(maPhieuDat)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy Phiếu đặt với mã: " + maPhieuDat));

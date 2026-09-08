@@ -12,4 +12,5 @@ public interface PhieuDatBanService {
     PhieuDatBanResponseDTO createPhieuDatBan(PhieuDatBanCreateRequestDTO requestDTO);
     PhieuDatBanResponseDTO updatePhieuDatBan(String maPhieuDat, PhieuDatBanUpdateRequestDTO requestDTO);
     void deletePhieuDatBan(String maPhieuDat);
+    boolean checkTableAvailability(String maBan, java.time.LocalDateTime thoiGianDen);
 }

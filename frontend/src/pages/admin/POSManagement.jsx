@@ -280,10 +280,34 @@ const POSManagement = () => {
   const handleReservation = () => {
     formReservation.validateFields().then(async values => {
       try {
+        const thoiGianDenStr = values.thoiGianDen.format('YYYY-MM-DDTHH:mm:ss');
+        
+        // KIỂM TRA BÀN TRỐNG TRƯỚC
+        const checkRes = await apiClient.get(`/api/v1/phieu-dat-ban/check-availability?maBan=${selectedTable.maBan}&thoiGianDen=${thoiGianDenStr}`);
+        const isAvailable = checkRes.data?.data;
+        
+        if (!isAvailable) {
+            Modal.confirm({
+                title: 'Bàn bận trong khoảng thời gian này!',
+                content: `Hệ thống kiểm tra thấy Bàn ${selectedTable.maBan} đã có khách đặt trước đó (hệ thống tự động chặn các đơn đặt cách nhau dưới 2 tiếng). Bạn muốn làm gì tiếp theo?`,
+                okText: 'Chọn ngày giờ khác',
+                cancelText: 'Đổi bàn khác',
+                onOk: () => {
+                    // Do nothing, just close confirm modal and let user edit time on the same modal
+                },
+                onCancel: () => {
+                    // Đóng modal Đặt bàn hiện tại để ra ngoài Sơ đồ chọn bàn khác
+                    setIsReservationModalVisible(false);
+                    // Có thể resetFields nếu muốn form trắng, hoặc giữ nguyên form để user click bàn khác và submit tiếp
+                }
+            });
+            return; // Dừng luồng đặt bàn
+        }
+
         const payload = {
           hoTen: values.hoTen,
           sdt: values.sdt,
-          thoiGianDen: values.thoiGianDen.format('YYYY-MM-DD') + 'T' + values.thoiGianDen.format('HH:mm:ss'),
+          thoiGianDen: thoiGianDenStr,
           soLuongNguoi: values.soLuongNguoi,
           ghiChu: values.ghiChu || '',
           tienDatCoc: values.tienDatCoc || 0,
@@ -291,7 +315,7 @@ const POSManagement = () => {
         };
         
         await apiClient.post('/api/web/booking', payload);
-        message.success(`Đã tạo phiếu đặt bàn thành công cho ${values.hoTen}! (Trạng thái: Chờ xác nhận)`);
+        message.success(`Đã tạo phiếu đặt bàn thành công cho ${values.hoTen}!`);
         setIsReservationModalVisible(false);
         formReservation.resetFields();
         fetchTables(); // Reload tables
