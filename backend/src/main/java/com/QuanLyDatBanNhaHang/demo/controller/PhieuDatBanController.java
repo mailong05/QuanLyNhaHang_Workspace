@@ -17,6 +17,14 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/v1/phieu-dat-ban")
 @RequiredArgsConstructor
 public class PhieuDatBanController {
+    @GetMapping("/check-availability")
+    public ResponseEntity<ApiResponse<Boolean>> checkAvailability(
+            @RequestParam String maBan,
+            @RequestParam @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE_TIME) java.time.LocalDateTime thoiGianDen) {
+        boolean isAvailable = phieuDatBanService.checkTableAvailability(maBan, thoiGianDen);
+        return ResponseEntity.ok(ApiResponse.success("Success", isAvailable));
+    }
+
 
     private final PhieuDatBanService phieuDatBanService;
 

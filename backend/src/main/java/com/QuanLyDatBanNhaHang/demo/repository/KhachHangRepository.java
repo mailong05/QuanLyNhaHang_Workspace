@@ -27,7 +27,7 @@ public interface KhachHangRepository extends JpaRepository<KhachHang, Long> {
                    "OR LOWER(k.sdt) LIKE LOWER(CONCAT('%', :keyword, '%'))",
            countQuery = "SELECT COUNT(k) FROM KhachHang k WHERE LOWER(k.hoTen) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(k.sdt) LIKE LOWER(CONCAT('%', :keyword, '%'))")
     Page<KhachHang> searchByHoTenOrSdt(@Param("keyword") String keyword, Pageable pageable);
-    @Query("SELECT MAX(CAST(SUBSTRING(k.maKH, 3, 6) AS int)) FROM KhachHang k")
+    @Query("SELECT MAX(CAST(SUBSTRING(k.maKH, 3, 10) AS int)) FROM KhachHang k WHERE k.maKH LIKE 'KH%' AND LENGTH(k.maKH) <= 10")
     Integer findMaxMaKH();
 
     boolean existsByMaKH(String maKH);

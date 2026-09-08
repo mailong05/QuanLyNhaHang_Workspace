@@ -23,8 +23,13 @@ public class BanAnServiceImpl implements BanAnService {
     private final KhuVucRepository khuVucRepository;
 
     @Override
-    public Page<BanAnResponseDTO> getAllBanAn(Pageable pageable) {
-        return banAnRepository.findAllWithRelations(pageable).map(this::convertToResponseDTO);
+    public Page<BanAnResponseDTO> getAllBanAn(String keyword, String trangThai, Pageable pageable) {
+        com.QuanLyDatBanNhaHang.demo.enums.TrangThaiBanAn enumTrangThai = null;
+        if (trangThai != null && !trangThai.trim().isEmpty()) {
+            try { enumTrangThai = com.QuanLyDatBanNhaHang.demo.enums.TrangThaiBanAn.valueOf(trangThai); } catch(Exception e) {}
+        }
+        String kw = (keyword != null && !keyword.trim().isEmpty()) ? "%" + keyword.trim() + "%" : null;
+        return banAnRepository.searchBanAn(kw, enumTrangThai, pageable).map(this::convertToResponseDTO);
     }
 
     @Override

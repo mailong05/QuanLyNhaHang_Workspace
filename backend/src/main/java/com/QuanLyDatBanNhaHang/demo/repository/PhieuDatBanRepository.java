@@ -19,6 +19,6 @@ public interface PhieuDatBanRepository extends JpaRepository<PhieuDatBan, Long> 
     @Query(value = "SELECT p FROM PhieuDatBan p LEFT JOIN FETCH p.khachHang LEFT JOIN FETCH p.nhanVien", 
            countQuery = "SELECT COUNT(p) FROM PhieuDatBan p")
     Page<PhieuDatBan> findAllWithRelations(Pageable pageable);
-    @Query("SELECT MAX(CAST(SUBSTRING(p.maPhieuDat, 4, 6) AS int)) FROM PhieuDatBan p")
+    @Query("SELECT MAX(CAST(SUBSTRING(p.maPhieuDat, 4, 10) AS int)) FROM PhieuDatBan p WHERE p.maPhieuDat LIKE 'PDB%' AND LENGTH(p.maPhieuDat) <= 10")
     Integer findMaxMaPhieuDat();
 }

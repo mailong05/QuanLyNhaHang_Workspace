@@ -7,7 +7,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 public interface BanAnService {
-    Page<BanAnResponseDTO> getAllBanAn(Pageable pageable);
+    Page<BanAnResponseDTO> getAllBanAn(String keyword, String trangThai, Pageable pageable);
     BanAnResponseDTO getBanAnByMa(String maBan);
     BanAnResponseDTO createBanAn(BanAnCreateRequestDTO requestDTO);
     BanAnResponseDTO updateBanAn(String maBan, BanAnUpdateRequestDTO requestDTO);

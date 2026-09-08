@@ -1,3 +1,4 @@
+import axios from 'axios';
 import React, { useState } from 'react';
 import { Layout, Typography, Row, Col, Card, Form, Input, DatePicker, TimePicker, InputNumber, Button, message, Modal, Image, Menu as AntMenu } from 'antd';
 import { CalendarOutlined, CheckCircleOutlined, FireOutlined, HomeOutlined, CoffeeOutlined } from '@ant-design/icons';
@@ -24,28 +25,53 @@ const Home = () => {
   const [isQrModalVisible, setIsQrModalVisible] = useState(false);
   const [currentDepositAmount, setCurrentDepositAmount] = useState(0);
 
+  const handleBooking = async (values, tienDatCoc) => {
+    setLoading(true);
+    try {
+      const payload = {
+        hoTen: values.hoTen,
+        sdt: values.sdt,
+        email: values.email || '',
+        thoiGianDen: values.ngayDen.format('YYYY-MM-DD') + 'T' + values.gioDen.format('HH:mm:ss'),
+        soLuongNguoi: values.soLuongNguoi,
+        ghiChu: values.ghiChu || '',
+        tienDatCoc: tienDatCoc
+      };
+      await axios.post('http://localhost:8080/api/web/booking', payload);
+      message.success(tienDatCoc > 0 ? 'Đặt bàn và ghi nhận cọc thành công!' : 'Đặt bàn thành công! Hệ thống đang xử lý và chờ xác nhận.');
+      form.resetFields();
+      setIsQrModalVisible(false);
+      setCurrentDepositAmount(0);
+    } catch (error) {
+      message.error(error.response?.data?.message || 'Lỗi khi đặt bàn, vui lòng thử lại!');
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const onFinish = (values) => {
-    const tienDatCoc = values.tienDatCoc || 0;
+    let tienDatCoc = values.tienDatCoc || 0;
+    // Tự động tính cọc nếu trên 5 người (VD: 500k)
+    if (values.soLuongNguoi >= 5 && tienDatCoc === 0) {
+      tienDatCoc = 500000; 
+      message.info('Bàn từ 5 người trở lên yêu cầu đặt cọc 500.000đ.');
+    }
     
     if (tienDatCoc > 0) {
       setCurrentDepositAmount(tienDatCoc);
       setIsQrModalVisible(true);
+      // Giữ thông tin form để submit sau khi cọc
+      form.setFieldsValue({ tienDatCoc: tienDatCoc });
     } else {
-      setLoading(true);
-      setTimeout(() => {
-        message.success('Đặt bàn thành công! Chúng tôi sẽ liên hệ lại với bạn sớm nhất.');
-        form.resetFields();
-        setLoading(false);
-      }, 1500);
+      handleBooking(values, 0);
     }
   };
 
   const handleQrPaymentSuccess = () => {
-    message.success('Đặt bàn và ghi nhận cọc thành công!');
-    setIsQrModalVisible(false);
-    form.resetFields();
-    setCurrentDepositAmount(0);
+    handleBooking(form.getFieldsValue(), currentDepositAmount);
   };
+
 
   const headerMenuItems = [
     { key: '/', icon: <HomeOutlined />, label: 'Trang Chủ' },

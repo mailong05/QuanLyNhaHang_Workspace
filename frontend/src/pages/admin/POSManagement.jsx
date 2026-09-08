@@ -278,20 +278,50 @@ const POSManagement = () => {
 
   // --- ACTIONS CHO ĐẶT BÀN (MOCK) ---
   const handleReservation = () => {
-    formReservation.validateFields().then(values => {
-      message.success(`Đã nhận đặt bàn thành công cho khách ${values.hoTen}!`);
-      setIsReservationModalVisible(false);
-      formReservation.resetFields();
-      
-      // Đổi trạng thái table thành DAT_TRUOC (Mock UI)
-      setTables(prevTables => prevTables.map(t => {
-        if (t.id === selectedTable.id) {
-          const updatedTable = { ...t, trangThai: 'DAT_TRUOC' };
-          setSelectedTable(updatedTable);
-          return updatedTable;
+    formReservation.validateFields().then(async values => {
+      try {
+        const thoiGianDenStr = values.thoiGianDen.format('YYYY-MM-DDTHH:mm:ss');
+        
+        // KIỂM TRA BÀN TRỐNG TRƯỚC
+        const checkRes = await apiClient.get(`/api/v1/phieu-dat-ban/check-availability?maBan=${selectedTable.maBan}&thoiGianDen=${thoiGianDenStr}`);
+        const isAvailable = checkRes.data?.data;
+        
+        if (!isAvailable) {
+            Modal.confirm({
+                title: 'Bàn bận trong khoảng thời gian này!',
+                content: `Hệ thống kiểm tra thấy Bàn ${selectedTable.maBan} đã có khách đặt trước đó (hệ thống tự động chặn các đơn đặt cách nhau dưới 2 tiếng). Bạn muốn làm gì tiếp theo?`,
+                okText: 'Chọn ngày giờ khác',
+                cancelText: 'Đổi bàn khác',
+                onOk: () => {
+                    // Do nothing, just close confirm modal and let user edit time on the same modal
+                },
+                onCancel: () => {
+                    // Đóng modal Đặt bàn hiện tại để ra ngoài Sơ đồ chọn bàn khác
+                    setIsReservationModalVisible(false);
+                    // Có thể resetFields nếu muốn form trắng, hoặc giữ nguyên form để user click bàn khác và submit tiếp
+                }
+            });
+            return; // Dừng luồng đặt bàn
         }
-        return t;
-      }));
+
+        const payload = {
+          hoTen: values.hoTen,
+          sdt: values.sdt,
+          thoiGianDen: thoiGianDenStr,
+          soLuongNguoi: values.soLuongNguoi,
+          ghiChu: values.ghiChu || '',
+          tienDatCoc: values.tienDatCoc || 0,
+          danhSachBanId: [selectedTable.id]
+        };
+        
+        await apiClient.post('/api/web/booking', payload);
+        message.success(`Đã tạo phiếu đặt bàn thành công cho ${values.hoTen}!`);
+        setIsReservationModalVisible(false);
+        formReservation.resetFields();
+        fetchTables(); // Reload tables
+      } catch (error) {
+        message.error('Lỗi khi đặt bàn: ' + (error.response?.data?.message || error.message));
+      }
     });
   };
 
@@ -646,7 +676,17 @@ const POSManagement = () => {
             <DatePicker showTime format="DD/MM/YYYY HH:mm" style={{ width: '100%' }} placeholder="Chọn ngày và giờ" />
           </Form.Item>
           <Form.Item name="soLuongNguoi" label="Số lượng người" rules={[{ required: true, message: 'Vui lòng nhập số lượng người!' }]}>
-            <InputNumber min={1} style={{ width: '100%' }} placeholder="Nhập số lượng người" />
+            <InputNumber min={1} style={{ width: '100%' }} placeholder="Nhập số lượng người" onChange={(val) => {
+                const deposit = (val && val >= 5) ? 500000 : 0;
+                formReservation.setFieldsValue({ tienDatCoc: deposit });
+            }} />
+          </Form.Item>
+          <Form.Item name="tienDatCoc" label="Tiền đặt cọc (Tự động tính theo số người)">
+            <InputNumber 
+                style={{ width: '100%' }} 
+                readOnly 
+                formatter={value => value ? value.toLocaleString('vi-VN') + ' đ' : '0 đ'} 
+            />
           </Form.Item>
           <Form.Item name="ghiChu" label="Ghi chú thêm">
             <Input.TextArea rows={3} placeholder="Ví dụ: Cần ghế trẻ em, dị ứng hải sản..." />

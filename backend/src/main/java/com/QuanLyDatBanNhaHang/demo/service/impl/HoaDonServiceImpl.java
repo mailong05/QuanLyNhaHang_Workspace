@@ -47,8 +47,13 @@ public class HoaDonServiceImpl implements HoaDonService {
     private final MonAnRepository monAnRepository;
 
     @Override
-    public Page<HoaDonResponseDTO> getAllHoaDon(Pageable pageable) {
-        return hoaDonRepository.findAllWithRelations(pageable).map(this::convertToResponseDTO);
+    public Page<HoaDonResponseDTO> getAllHoaDon(String keyword, String trangThai, Pageable pageable) {
+        com.QuanLyDatBanNhaHang.demo.enums.TrangThaiThanhToanHoaDon enumTrangThai = null;
+        if (trangThai != null && !trangThai.trim().isEmpty()) {
+            try { enumTrangThai = com.QuanLyDatBanNhaHang.demo.enums.TrangThaiThanhToanHoaDon.valueOf(trangThai); } catch(Exception e) {}
+        }
+        String kw = (keyword != null && !keyword.trim().isEmpty()) ? "%" + keyword.trim() + "%" : null;
+        return hoaDonRepository.searchHoaDon(kw, enumTrangThai, pageable).map(this::convertToResponseDTO);
     }
 
     @Override

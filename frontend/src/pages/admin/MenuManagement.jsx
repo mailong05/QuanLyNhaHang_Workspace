@@ -31,6 +31,9 @@ const LOAI_MON_AN = {
 const MenuManagement = () => {
   const [menus, setMenus] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [searchText, setSearchText] = useState('');
+  const [filterStatus, setFilterStatus] = useState('');
+
   const [pagination, setPagination] = useState({ current: 1, pageSize: 10, total: 0 });
   
   // State quản lý Modal
@@ -59,11 +62,11 @@ const MenuManagement = () => {
     }
   };
 
-  const fetchMenus = async (page = 1, pageSize = 10) => {
+  const fetchMenus = async (page = 1, pageSize = 10, keyword = searchText, status = filterStatus) => {
     setLoading(true);
     try {
       // Spring Data JPA dùng page bắt đầu từ 0
-      const data = await apiClient.get(`/api/v1/mon-an?page=${page - 1}&size=${pageSize}`);
+      const data = await apiClient.get(`/api/v1/mon-an?page=${page - 1}&size=${pageSize}&keyword=${keyword}&trangThai=${status}`);
       const menuList = data.content ? data.content : data;
       setMenus(menuList);
       if (data.totalElements !== undefined) {
@@ -219,6 +222,28 @@ const MenuManagement = () => {
         title="Quản lý Món ăn" 
         extra={<Button type="primary" icon={<PlusOutlined />} onClick={showAddModal}>Thêm Món Mới</Button>}
       >
+        
+        <Space style={{ marginBottom: 16 }}>
+          <Input.Search 
+            placeholder="Tìm kiếm theo tên / mã..." 
+            allowClear 
+            onSearch={(val) => { setSearchText(val); fetchMenus(1, pagination.pageSize, val, filterStatus); }} 
+            style={{ width: 250 }} 
+          />
+          <Select 
+            placeholder="Lọc theo trạng thái" 
+            allowClear 
+            style={{ width: 200 }} 
+            onChange={(val) => { setFilterStatus(val || ''); fetchMenus(1, pagination.pageSize, searchText, val || ''); }}
+          >
+            
+            <Option value="CON_HANG">Còn hàng</Option>
+            <Option value="HET_HANG">Hết hàng</Option>
+            <Option value="NGUNG_BAN">Ngừng bán</Option>
+    
+          </Select>
+        </Space>
+
         <Table 
           columns={columns} 
           dataSource={menus} 

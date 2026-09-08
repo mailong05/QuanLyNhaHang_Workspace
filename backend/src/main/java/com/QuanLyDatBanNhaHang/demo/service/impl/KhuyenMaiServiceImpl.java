@@ -20,8 +20,13 @@ public class KhuyenMaiServiceImpl implements KhuyenMaiService {
     private final KhuyenMaiRepository khuyenMaiRepository;
 
     @Override
-    public Page<KhuyenMaiResponseDTO> getAllKhuyenMai(Pageable pageable) {
-        return khuyenMaiRepository.findAll(pageable).map(this::convertToResponseDTO);
+    public Page<KhuyenMaiResponseDTO> getAllKhuyenMai(String keyword, String trangThai, Pageable pageable) {
+        com.QuanLyDatBanNhaHang.demo.enums.TrangThaiKhuyenMai enumTrangThai = null;
+        if (trangThai != null && !trangThai.trim().isEmpty()) {
+            try { enumTrangThai = com.QuanLyDatBanNhaHang.demo.enums.TrangThaiKhuyenMai.valueOf(trangThai); } catch(Exception e) {}
+        }
+        String kw = (keyword != null && !keyword.trim().isEmpty()) ? "%" + keyword.trim() + "%" : null;
+        return khuyenMaiRepository.searchKhuyenMai(kw, enumTrangThai, pageable).map(this::convertToResponseDTO);
     }
 
     @Override

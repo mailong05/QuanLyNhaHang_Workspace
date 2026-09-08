@@ -8,6 +8,9 @@ const { Option } = Select;
 const TableManagement = () => {
   const [tables, setTables] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [searchText, setSearchText] = useState('');
+  const [filterStatus, setFilterStatus] = useState('');
+
   const [pagination, setPagination] = useState({ current: 1, pageSize: 10, total: 0 });
   
   // State quản lý Modal
@@ -15,10 +18,10 @@ const TableManagement = () => {
   const [editingId, setEditingId] = useState(null); // Lưu maBan đang sửa
   const [form] = Form.useForm();
 
-  const fetchTables = async (page = 1, pageSize = 10) => {
+  const fetchTables = async (page = 1, pageSize = 10, keyword = searchText, status = filterStatus) => {
     setLoading(true);
     try {
-      const data = await apiClient.get(`/api/v1/ban-an?page=${page - 1}&size=${pageSize}`);
+      const data = await apiClient.get(`/api/v1/ban-an?page=${page - 1}&size=${pageSize}&keyword=${keyword}&trangThai=${status}`);
       const tableList = data.content ? data.content : data;
       setTables(tableList);
       if (data.totalElements !== undefined) {
@@ -172,6 +175,29 @@ const TableManagement = () => {
         title="Quản lý Bàn ăn" 
         extra={<Button type="primary" icon={<PlusOutlined />} onClick={showAddModal}>Thêm Bàn Mới</Button>}
       >
+        
+        <Space style={{ marginBottom: 16 }}>
+          <Input.Search 
+            placeholder="Tìm kiếm theo tên / mã..." 
+            allowClear 
+            onSearch={(val) => { setSearchText(val); fetchTables(1, pagination.pageSize, val, filterStatus); }} 
+            style={{ width: 250 }} 
+          />
+          <Select 
+            placeholder="Lọc theo trạng thái" 
+            allowClear 
+            style={{ width: 200 }} 
+            onChange={(val) => { setFilterStatus(val || ''); fetchTables(1, pagination.pageSize, searchText, val || ''); }}
+          >
+            
+            <Option value="TRONG">Trống</Option>
+            <Option value="DANG_SUDUNG">Đang sử dụng</Option>
+            <Option value="DA_DAT">Đã đặt</Option>
+            <Option value="BAO_TRI">Bảo trì</Option>
+    
+          </Select>
+        </Space>
+
         <Table 
           columns={columns} 
           dataSource={tables} 

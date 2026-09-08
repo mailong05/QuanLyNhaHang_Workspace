@@ -305,6 +305,8 @@ const BookingManagement = () => {
     { title: 'SĐT', key: 'sdt', render: (_, record) => record.sdtKH || record.sdt || 'N/A' },
     { title: 'Thời gian đến', dataIndex: 'thoiGianDen', key: 'thoiGianDen', render: (time) => time ? dayjs(time).format('HH:mm DD/MM/YYYY') : '' },
     { title: 'Số người', dataIndex: 'soLuongNguoi', key: 'soLuongNguoi', render: (num) => `${num} người` },
+      { title: 'Tiền cọc', dataIndex: 'tienDatCoc', key: 'tienDatCoc', render: (val) => val ? val.toLocaleString('vi-VN') + ' đ' : '0 đ' },
+      { title: 'Mã bàn', key: 'maBan', render: (_, record) => record.chiTiets && record.chiTiets.length > 0 ? record.chiTiets.map(ct => ct.maBan).join(', ') : 'Chưa xếp' },
     { title: 'Trạng thái', dataIndex: 'trangThai', key: 'trangThai', render: (trangThai) => getStatusTag(trangThai) },
     {
       title: 'Hành động',

@@ -59,13 +59,15 @@ public class WebBookingServiceImpl implements WebBookingService {
         LocalDateTime start = request.getThoiGianDen().minusHours(2);
         LocalDateTime end = request.getThoiGianDen().plusHours(2);
 
-        for (Long banId : request.getDanhSachBanId()) {
-            BanAn banAn = banAnRepository.findById(banId)
-                    .orElseThrow(() -> new ResourceNotFoundException("Bàn ăn không tồn tại: " + banId));
+        if (request.getDanhSachBanId() != null && !request.getDanhSachBanId().isEmpty()) {
+            for (Long banId : request.getDanhSachBanId()) {
+                BanAn banAn = banAnRepository.findById(banId)
+                        .orElseThrow(() -> new ResourceNotFoundException("Bàn ăn không tồn tại: " + banId));
 
-            List<ChiTietPhieuDatBan> conflicts = chiTietPhieuDatBanRepository.findConflictingBookings(banAn.getMaBan(), start, end, null);
-            if (!conflicts.isEmpty()) {
-                throw new IllegalArgumentException("Bàn " + banAn.getMaBan() + " đã có người đặt trong khung giờ này.");
+                List<ChiTietPhieuDatBan> conflicts = chiTietPhieuDatBanRepository.findConflictingBookings(banAn.getMaBan(), start, end, null);
+                if (!conflicts.isEmpty()) {
+                    throw new IllegalArgumentException("Bàn " + banAn.getMaBan() + " đã có người đặt trong khung giờ này.");
+                }
             }
         }
 
@@ -77,23 +79,25 @@ public class WebBookingServiceImpl implements WebBookingService {
                 .soLuongNguoi(request.getSoLuongNguoi())
                 .ghiChu("Khách đặt qua Web. " + (request.getGhiChu() != null ? request.getGhiChu() : ""))
                 .trangThai(TrangThaiPhieuDatBan.CHO_XAC_NHAN)
-                .tienDatCoc(BigDecimal.ZERO)
+                .tienDatCoc(request.getTienDatCoc() != null ? request.getTienDatCoc() : BigDecimal.ZERO)
                 .khachHang(khachHang)
                 .nhanVien(null) // Cho phép NULL vì khách tự đặt
                 .build();
 
         PhieuDatBan savedPhieu = phieuDatBanRepository.save(phieuDatBan);
 
-        // 4. Tạo ChiTietPhieuDatBan
-        for (Long banId : request.getDanhSachBanId()) {
-            BanAn banAn = banAnRepository.findById(banId).orElseThrow();
-            
-            ChiTietPhieuDatBan ct = ChiTietPhieuDatBan.builder()
-                    .phieuDatBan(savedPhieu)
-                    .banAn(banAn)
-                    .ghiChu("")
-                    .build();
-            chiTietPhieuDatBanRepository.save(ct);
+        // 4. Tạo ChiTietPhieuDatBan (nếu khách có chọn bàn, nhưng thường web sẽ không chọn)
+        if (request.getDanhSachBanId() != null && !request.getDanhSachBanId().isEmpty()) {
+            for (Long banId : request.getDanhSachBanId()) {
+                BanAn banAn = banAnRepository.findById(banId).orElseThrow();
+                
+                ChiTietPhieuDatBan ct = ChiTietPhieuDatBan.builder()
+                        .phieuDatBan(savedPhieu)
+                        .banAn(banAn)
+                        .ghiChu("")
+                        .build();
+                chiTietPhieuDatBanRepository.save(ct);
+            }
         }
     }
 }

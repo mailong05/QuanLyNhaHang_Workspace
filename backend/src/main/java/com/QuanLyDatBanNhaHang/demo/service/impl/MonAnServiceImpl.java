@@ -20,8 +20,13 @@ public class MonAnServiceImpl implements MonAnService {
     private final MonAnRepository monAnRepository;
 
     @Override
-    public Page<MonAnResponseDTO> getAllMonAn(Pageable pageable) {
-        return monAnRepository.findAll(pageable).map(this::convertToResponseDTO);
+    public Page<MonAnResponseDTO> getAllMonAn(String keyword, String trangThai, Pageable pageable) {
+        com.QuanLyDatBanNhaHang.demo.enums.TrangThaiMonAn enumTrangThai = null;
+        if (trangThai != null && !trangThai.trim().isEmpty()) {
+            try { enumTrangThai = com.QuanLyDatBanNhaHang.demo.enums.TrangThaiMonAn.valueOf(trangThai); } catch(Exception e) {}
+        }
+        String kw = (keyword != null && !keyword.trim().isEmpty()) ? "%" + keyword.trim() + "%" : null;
+        return monAnRepository.searchMonAn(kw, enumTrangThai, pageable).map(this::convertToResponseDTO);
     }
 
     @Override

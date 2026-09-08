@@ -5,6 +5,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
@@ -14,6 +15,14 @@ public interface MonAnRepository extends JpaRepository<MonAn, Long> {
     Optional<MonAn> findByMaMonIgnoreCase(String maMon);
     boolean existsByMaMon(String maMon);
     Page<MonAn> findByTenMonContainingIgnoreCase(String tenMon, Pageable pageable);
+
+    @Query(value = "SELECT m FROM MonAn m " +
+                   "WHERE (:keyword IS NULL OR LOWER(m.tenMon) LIKE LOWER(:keyword)) " +
+                   "AND (:trangThai IS NULL OR m.trangThai = :trangThai)",
+           countQuery = "SELECT COUNT(m) FROM MonAn m " +
+                   "WHERE (:keyword IS NULL OR LOWER(m.tenMon) LIKE LOWER(:keyword)) " +
+                   "AND (:trangThai IS NULL OR m.trangThai = :trangThai)")
+    Page<MonAn> searchMonAn(@Param("keyword") String keyword, @Param("trangThai") com.QuanLyDatBanNhaHang.demo.enums.TrangThaiMonAn trangThai, Pageable pageable);
 
     @Query("SELECT MAX(CAST(SUBSTRING(m.maMon, 3, 6) AS int)) FROM MonAn m")
     Integer findMaxMaMon();

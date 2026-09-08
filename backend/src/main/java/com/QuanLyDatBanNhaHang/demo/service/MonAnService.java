@@ -7,7 +7,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 public interface MonAnService {
-    Page<MonAnResponseDTO> getAllMonAn(Pageable pageable);
+    Page<MonAnResponseDTO> getAllMonAn(String keyword, String trangThai, Pageable pageable);
     MonAnResponseDTO getMonAnByMa(String maMon);
     MonAnResponseDTO createMonAn(MonAnCreateRequestDTO requestDTO);
     MonAnResponseDTO updateMonAn(String maMon, MonAnUpdateRequestDTO requestDTO);
