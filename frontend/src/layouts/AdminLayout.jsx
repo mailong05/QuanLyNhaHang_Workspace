@@ -68,12 +68,12 @@ const AdminLayout = () => {
       roles: ['ADMIN', 'ROLE_ADMIN', 'QUAN_LY'],
       children: [
         { key: '/admin', icon: <DashboardOutlined />, label: 'Dashboard', roles: ['ADMIN', 'ROLE_ADMIN', 'QUAN_LY'] },
-        { key: '/admin/statistics', icon: <LineChartOutlined />, label: 'Thống Kê', roles: ['ADMIN', 'ROLE_ADMIN', 'QUAN_LY'] },
+        { key: '/admin/analytics', icon: <LineChartOutlined />, label: 'Thống Kê', roles: ['ADMIN', 'ROLE_ADMIN', 'QUAN_LY'] },
       ]
     },
     {
       key: 'grp_operations',
-      label: 'VẬN HÀNH QUÁN',
+      label: 'VẬN HÀNH NHÀ HÀNG',
       type: 'group',
       roles: ['ADMIN', 'ROLE_ADMIN', 'STAFF', 'ROLE_STAFF', 'NHAN_VIEN', 'QUAN_LY'],
       children: [
