@@ -5,6 +5,7 @@ import com.QuanLyDatBanNhaHang.demo.dto.request.BanAnUpdateRequestDTO;
 import com.QuanLyDatBanNhaHang.demo.dto.response.BanAnResponseDTO;
 import com.QuanLyDatBanNhaHang.demo.entity.BanAn;
 import com.QuanLyDatBanNhaHang.demo.entity.KhuVuc;
+import com.QuanLyDatBanNhaHang.demo.enums.TrangThaiBanAn;
 import com.QuanLyDatBanNhaHang.demo.exception.DuplicateResourceException;
 import com.QuanLyDatBanNhaHang.demo.exception.ResourceNotFoundException;
 import com.QuanLyDatBanNhaHang.demo.repository.BanAnRepository;
@@ -24,9 +25,11 @@ public class BanAnServiceImpl implements BanAnService {
 
     @Override
     public Page<BanAnResponseDTO> getAllBanAn(String keyword, String trangThai, Pageable pageable) {
-        com.QuanLyDatBanNhaHang.demo.enums.TrangThaiBanAn enumTrangThai = null;
+        TrangThaiBanAn enumTrangThai = null;
         if (trangThai != null && !trangThai.trim().isEmpty()) {
-            try { enumTrangThai = com.QuanLyDatBanNhaHang.demo.enums.TrangThaiBanAn.valueOf(trangThai); } catch(Exception e) {}
+            try { enumTrangThai = TrangThaiBanAn.valueOf(trangThai); } catch(Exception e) {
+
+            }
         }
         String kw = (keyword != null && !keyword.trim().isEmpty()) ? "%" + keyword.trim() + "%" : null;
         return banAnRepository.searchBanAn(kw, enumTrangThai, pageable).map(this::convertToResponseDTO);
@@ -84,6 +87,7 @@ public class BanAnServiceImpl implements BanAnService {
     public void deleteBanAn(String maBan) {
         BanAn ba = banAnRepository.findByMaBanIgnoreCase(maBan)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy Bàn ăn với mã: " + maBan));
+
                 
         if (ba.getMaBan() != null && !ba.getMaBan().contains("_deleted_")) {
             ba.setMaBan(ba.getMaBan() + "_deleted_" + System.currentTimeMillis());

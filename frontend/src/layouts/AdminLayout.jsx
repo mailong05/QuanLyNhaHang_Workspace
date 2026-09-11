@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Layout, Menu, Button, Dropdown, Avatar, Typography, Modal, Form, Input, Space } from 'antd';
-import { DashboardOutlined, TableOutlined, LogoutOutlined, CoffeeOutlined, TagOutlined, ScheduleOutlined, AppstoreAddOutlined, ClockCircleOutlined, LineChartOutlined, UserOutlined, KeyOutlined, FileTextOutlined } from '@ant-design/icons';
+import { DashboardOutlined, TableOutlined, LogoutOutlined, CoffeeOutlined, TagOutlined, ScheduleOutlined, AppstoreAddOutlined, ClockCircleOutlined, LineChartOutlined, UserOutlined, KeyOutlined, FileTextOutlined , SettingOutlined, UsergroupAddOutlined, TeamOutlined} from '@ant-design/icons';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 
 const { Header, Sider, Content } = Layout;
@@ -62,63 +62,88 @@ const AdminLayout = () => {
 
   const menuItems = [
     {
-      key: '/admin',
-      icon: <DashboardOutlined />,
-      label: 'Dashboard',
-      roles: ['ADMIN', 'ROLE_ADMIN', 'STAFF', 'ROLE_STAFF', 'NHAN_VIEN', 'QUAN_LY']
+      key: 'grp_dashboard',
+      label: 'TỔNG QUAN & BÁO CÁO',
+      type: 'group',
+      roles: ['ADMIN', 'ROLE_ADMIN', 'QUAN_LY'],
+      children: [
+        { key: '/admin', icon: <DashboardOutlined />, label: 'Dashboard', roles: ['ADMIN', 'ROLE_ADMIN', 'QUAN_LY'] },
+        { key: '/admin/statistics', icon: <LineChartOutlined />, label: 'Thống Kê', roles: ['ADMIN', 'ROLE_ADMIN', 'QUAN_LY'] },
+      ]
     },
     {
-      key: '/admin/pos',
-      icon: <AppstoreAddOutlined />,
-      label: 'Bán Hàng (POS)',
-      roles: ['ADMIN', 'ROLE_ADMIN', 'STAFF', 'ROLE_STAFF', 'NHAN_VIEN']
+      key: 'grp_operations',
+      label: 'VẬN HÀNH QUÁN',
+      type: 'group',
+      roles: ['ADMIN', 'ROLE_ADMIN', 'STAFF', 'ROLE_STAFF', 'NHAN_VIEN', 'QUAN_LY'],
+      children: [
+        { key: '/admin/pos', icon: <AppstoreAddOutlined />, label: 'Bán Hàng (POS)', roles: ['ADMIN', 'ROLE_ADMIN', 'STAFF', 'ROLE_STAFF', 'NHAN_VIEN', 'QUAN_LY'] },
+        { key: '/admin/bookings', icon: <ScheduleOutlined />, label: 'Phiếu Đặt Bàn', roles: ['ADMIN', 'ROLE_ADMIN', 'STAFF', 'ROLE_STAFF', 'NHAN_VIEN', 'QUAN_LY'] },
+        { key: '/admin/invoices', icon: <FileTextOutlined />, label: 'Quản lý Hóa đơn', roles: ['ADMIN', 'ROLE_ADMIN', 'STAFF', 'ROLE_STAFF', 'NHAN_VIEN', 'QUAN_LY'] },
+        { key: '/admin/shifts', icon: <ClockCircleOutlined />, label: 'Giao Ca', roles: ['ADMIN', 'ROLE_ADMIN', 'STAFF', 'ROLE_STAFF', 'NHAN_VIEN', 'QUAN_LY'] },
+      ]
     },
     {
-      key: '/admin/bookings',
-      icon: <ScheduleOutlined />,
-      label: 'Phiếu Đặt Bàn',
-      roles: ['ADMIN', 'ROLE_ADMIN', 'STAFF', 'ROLE_STAFF', 'NHAN_VIEN']
+      key: 'grp_catalog',
+      label: 'DANH MỤC HÀNG HÓA',
+      type: 'group',
+      roles: ['ADMIN', 'ROLE_ADMIN', 'QUAN_LY'],
+      children: [
+        { 
+          key: 'sub_menu', 
+          icon: <CoffeeOutlined />, 
+          label: 'Thực đơn', 
+          roles: ['ADMIN', 'ROLE_ADMIN', 'QUAN_LY'],
+          children: [
+            { key: '/admin/menu', label: 'Món ăn', roles: ['ADMIN', 'ROLE_ADMIN', 'QUAN_LY'] },
+            { key: '/admin/categories', label: 'Danh mục món', roles: ['ADMIN', 'ROLE_ADMIN', 'QUAN_LY'] }
+          ]
+        },
+        { 
+          key: 'sub_table', 
+          icon: <TableOutlined />, 
+          label: 'Sơ đồ Bàn', 
+          roles: ['ADMIN', 'ROLE_ADMIN', 'QUAN_LY'],
+          children: [
+            { key: '/admin/tables', label: 'Quản lý Bàn', roles: ['ADMIN', 'ROLE_ADMIN', 'QUAN_LY'] },
+            { key: '/admin/areas', label: 'Quản lý Khu vực', roles: ['ADMIN', 'ROLE_ADMIN', 'QUAN_LY'] }
+          ]
+        },
+      ]
     },
     {
-      key: '/admin/tables',
-      icon: <TableOutlined />,
-      label: 'Quản lý Bàn',
-      roles: ['ADMIN', 'ROLE_ADMIN', 'STAFF', 'ROLE_STAFF', 'NHAN_VIEN']
+      key: 'grp_crm',
+      label: 'KHÁCH HÀNG & MARKETING',
+      type: 'group',
+      roles: ['ADMIN', 'ROLE_ADMIN', 'STAFF', 'ROLE_STAFF', 'NHAN_VIEN', 'QUAN_LY'],
+      children: [
+        { key: '/admin/customers', icon: <TeamOutlined />, label: 'Khách hàng', roles: ['ADMIN', 'ROLE_ADMIN', 'STAFF', 'ROLE_STAFF', 'NHAN_VIEN', 'QUAN_LY'] },
+        { key: '/admin/vouchers', icon: <TagOutlined />, label: 'Khuyến Mãi', roles: ['ADMIN', 'ROLE_ADMIN', 'QUAN_LY'] },
+      ]
     },
     {
-      key: '/admin/menu',
-      icon: <CoffeeOutlined />,
-      label: 'Quản lý Món ăn',
-      roles: ['ADMIN', 'ROLE_ADMIN', 'STAFF', 'ROLE_STAFF', 'NHAN_VIEN']
-    },
-    {
-      key: '/admin/vouchers',
-      icon: <TagOutlined />,
-      label: 'Khuyến Mãi',
-      roles: ['ADMIN', 'ROLE_ADMIN']
-    },
-    {
-      key: '/admin/shifts',
-      icon: <ClockCircleOutlined />,
-      label: 'Giao Ca',
-      roles: ['ADMIN', 'ROLE_ADMIN', 'STAFF', 'ROLE_STAFF', 'NHAN_VIEN', 'QUAN_LY']
-    },
-    {
-      key: '/admin/invoices',
-      icon: <FileTextOutlined />,
-      label: 'Quản lý Hóa đơn',
-      roles: ['ADMIN', 'ROLE_ADMIN', 'STAFF', 'ROLE_STAFF', 'NHAN_VIEN', 'QUAN_LY']
-    },
-    {
-      key: '/admin/analytics',
-      icon: <LineChartOutlined />,
-      label: 'Thống Kê',
-      roles: ['ADMIN', 'ROLE_ADMIN']
-    },
+      key: 'grp_system',
+      label: 'NHÂN SỰ & HỆ THỐNG',
+      type: 'group',
+      roles: ['ADMIN', 'ROLE_ADMIN'],
+      children: [
+        { key: '/admin/employees', icon: <UsergroupAddOutlined />, label: 'Quản lý Nhân viên', roles: ['ADMIN', 'ROLE_ADMIN'] },
+        { key: '/admin/settings', icon: <SettingOutlined />, label: 'Cài đặt hệ thống', roles: ['ADMIN', 'ROLE_ADMIN'] },
+      ]
+    }
   ];
 
-  // Lọc menu theo role
-  const filteredMenu = menuItems.filter(item => item.roles.includes(role));
+  const filterMenuByRole = (items, userRole) => {
+    return items
+      .filter(item => item.roles.includes(userRole))
+      .map(item => {
+        if (item.children) {
+          return { ...item, children: filterMenuByRole(item.children, userRole) };
+        }
+        return item;
+      });
+  };
+  const filteredMenu = filterMenuByRole(menuItems, role);
 
   return (
     <Layout style={{ minHeight: '100vh' }}>

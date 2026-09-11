@@ -1,6 +1,7 @@
 package com.QuanLyDatBanNhaHang.demo.repository;
 
 import com.QuanLyDatBanNhaHang.demo.entity.BanAn;
+import com.QuanLyDatBanNhaHang.demo.enums.TrangThaiBanAn;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -15,7 +16,7 @@ public interface BanAnRepository extends JpaRepository<BanAn, Long> {
     
     @Query("SELECT b FROM BanAn b LEFT JOIN FETCH b.khuVuc WHERE LOWER(b.maBan) = LOWER(:maBan)")
     Optional<BanAn> findByMaBanIgnoreCaseWithKhuVuc(@Param("maBan") String maBan);
-    
+
     Optional<BanAn> findByMaBanIgnoreCase(String maBan);
 
     @Query(value = "SELECT b FROM BanAn b LEFT JOIN FETCH b.khuVuc", 
@@ -28,18 +29,19 @@ public interface BanAnRepository extends JpaRepository<BanAn, Long> {
            countQuery = "SELECT COUNT(b) FROM BanAn b " +
                    "WHERE (:keyword IS NULL OR LOWER(b.maBan) LIKE LOWER(:keyword)) " +
                    "AND (:trangThai IS NULL OR b.trangThai = :trangThai)")
-    Page<BanAn> searchBanAn(@Param("keyword") String keyword, @Param("trangThai") com.QuanLyDatBanNhaHang.demo.enums.TrangThaiBanAn trangThai, Pageable pageable);
+    Page<BanAn> searchBanAn(@Param("keyword") String keyword, @Param("trangThai") TrangThaiBanAn trangThai, Pageable pageable);
+
     @Query("SELECT MAX(CAST(SUBSTRING(b.maBan, 3, 6) AS int)) FROM BanAn b")
     Integer findMaxMaBan();
 
     boolean existsByMaBan(String maBan);
 
     @Query("SELECT COUNT(b) FROM BanAn b WHERE b.trangThai IN (:trangThais)")
-    Long countByTrangThaiIn(@Param("trangThais") java.util.List<com.QuanLyDatBanNhaHang.demo.enums.TrangThaiBanAn> trangThais);
+    Long countByTrangThaiIn(@Param("trangThais") java.util.List<TrangThaiBanAn> trangThais);
 
-    @org.springframework.data.jpa.repository.Query(value = "SELECT * FROM BanAn WHERE deleted_at IS NOT NULL", nativeQuery = true)
+    @Query(value = "SELECT * FROM BanAn WHERE deleted_at IS NOT NULL", nativeQuery = true)
     java.util.List<BanAn> findAllDeleted();
 
-    @org.springframework.data.jpa.repository.Query(value = "SELECT * FROM BanAn WHERE id = :id AND deleted_at IS NOT NULL", nativeQuery = true)
-    java.util.Optional<BanAn> findDeletedById(@org.springframework.data.repository.query.Param("id") Long id);
+    @Query(value = "SELECT * FROM BanAn WHERE id = :id AND deleted_at IS NOT NULL", nativeQuery = true)
+    java.util.Optional<BanAn> findDeletedById(@Param("id") Long id);
 }
