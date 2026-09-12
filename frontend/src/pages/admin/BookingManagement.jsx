@@ -26,6 +26,7 @@ const BookingManagement = () => {
 
   // Modal State cho việc Đổi/Gộp Bàn (DANG_PHUC_VU)
   const [isTransferMergeModalVisible, setIsTransferMergeModalVisible] = useState(false);
+  const [isMapModalVisible, setIsMapModalVisible] = useState(false);
   const [transferMergeBooking, setTransferMergeBooking] = useState(null);
   const [transferMergeTab, setTransferMergeTab] = useState('CHANGE');
   const [selectedMapTable, setSelectedMapTable] = useState(null);
@@ -151,14 +152,31 @@ const BookingManagement = () => {
 
   const handleSaveEditBooking = async (values) => {
     try {
+      const thoiGianDenStr = values.thoiGianDen.format('YYYY-MM-DDTHH:mm:ss');
+      const targetTable = values.maBan || editingBooking?.chiTiets?.[0]?.maBan;
+
+      // Nếu có bàn, phải check availability (loại trừ chính phiếu này)
+      if (targetTable) {
+        const checkRes = await apiClient.get(`/api/v1/phieu-dat-ban/check-availability?maBan=${targetTable}&thoiGianDen=${thoiGianDenStr}&excludePhieuId=${editingBooking.id}`);
+        const isAvailable = checkRes;
+        
+        if (!isAvailable) {
+            Modal.warning({
+                title: 'Bàn đã bận!',
+                content: `Bàn ${targetTable} đang có khách hoặc đã được đặt trước trong khoảng thời gian này. Vui lòng chọn bàn khác hoặc đổi giờ.`
+            });
+            return;
+        }
+      }
+
       const payload = {
         ...editingBooking,
         hoTenKH: values.hoTenKH,
         sdtKH: values.sdtKH,
-        thoiGianDen: values.thoiGianDen.toISOString(),
+        thoiGianDen: thoiGianDenStr,
         soLuongNguoi: values.soLuongNguoi,
         ghiChu: values.ghiChu,
-        chiTiets: values.maBan ? [{ maBan: values.maBan, maPhieuDat: editingBooking.maPhieuDat }] : []
+        chiTiets: targetTable ? [{ maBan: targetTable, maPhieuDat: editingBooking.maPhieuDat }] : []
       };
       await apiClient.put(`/api/v1/phieu-dat-ban/${editingBooking.maPhieuDat}`, payload);
       message.success('Cập nhật phiếu đặt bàn thành công!');
@@ -230,10 +248,10 @@ const BookingManagement = () => {
   };
 
   // Render Sơ đồ Bàn Thu Nhỏ
-  const renderMiniTableMap = (allowedStatuses) => {
+  const renderMiniTableMap = (allowedStatuses, currentTable) => {
     const filteredTables = allTables.filter(t => 
       t.khuVuc === mapFilterArea && allowedStatuses.includes(t.trangThai) && 
-      (transferMergeBooking?.chiTiets?.[0]?.maBan !== t.maBan) // Không hiện bàn hiện tại của khách
+      (currentTable !== t.maBan) // Không hiện bàn hiện tại của khách
     );
 
     const getTableStyle = (status) => {
@@ -392,15 +410,16 @@ const BookingManagement = () => {
             </Col>
           </Row>
           <Form.Item name="ghiChu" label="Ghi chú thêm"><Input.TextArea rows={2} /></Form.Item>
-          {editingBooking?.trangThai === 'DA_XAC_NHAN' && (
+          {(editingBooking?.trangThai === 'DA_XAC_NHAN' || editingBooking?.trangThai === 'CHO_XAC_NHAN') && (
             <Form.Item name="maBan" label="Bàn đã xếp (Có thể chọn lại bàn khác)">
-              <Select placeholder="-- Chọn Bàn --">
-                {allTables.filter(t => t.trangThai === 'TRONG' || t.maBan === editingBooking?.chiTiets?.[0]?.maBan).map(table => (
-                  <Option key={table.id} value={table.maBan}>
-                    Bàn {table.maBan} - {table.viTri} (Sức chứa: {table.soGhe})
-                  </Option>
-                ))}
-              </Select>
+              <Space.Compact style={{ width: '100%' }}>
+                <Input readOnly value={formEdit.getFieldValue('maBan') || 'Chưa xếp'} style={{ width: '70%' }} />
+                <Button type="primary" onClick={() => {
+                   setMapFilterArea('TANG_TRET');
+                   setSelectedMapTable(null);
+                   setIsMapModalVisible(true);
+                }} style={{ width: '30%' }}>Đổi Bàn</Button>
+              </Space.Compact>
             </Form.Item>
           )}
         </Form>
@@ -420,9 +439,23 @@ const BookingManagement = () => {
         </Radio.Group>
         <Card size="small" title="Chọn bàn mục tiêu từ Sơ đồ">
           {transferMergeTab === 'CHANGE' 
-            ? renderMiniTableMap(['TRONG']) 
-            : renderMiniTableMap(['DANG_SUDUNG', 'DA_DAT'])}
+            ? renderMiniTableMap(['TRONG'], transferMergeBooking?.chiTiets?.[0]?.maBan) 
+            : renderMiniTableMap(['DANG_SUDUNG', 'DA_DAT'], transferMergeBooking?.chiTiets?.[0]?.maBan)}
         </Card>
+      </Modal>
+
+      {/* Modal Chọn Bàn từ Sơ đồ */}
+      <Modal zIndex={1050} title="Chọn Bàn Từ Sơ Đồ" open={isMapModalVisible} onCancel={() => setIsMapModalVisible(false)} onOk={() => {
+        if (selectedMapTable) {
+            formEdit.setFieldsValue({ maBan: selectedMapTable.maBan });
+            setIsMapModalVisible(false);
+        } else {
+            message.warning('Vui lòng chọn 1 bàn');
+        }
+      }} okText="Xác nhận chọn bàn" width={700}>
+         <Card size="small" title="Chọn bàn mục tiêu từ Sơ đồ">
+          {renderMiniTableMap(['TRONG', 'DA_DAT', 'DANG_SUDUNG'], editingBooking?.chiTiets?.[0]?.maBan)}
+         </Card>
       </Modal>
     </>
   );

@@ -8,6 +8,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import com.QuanLyDatBanNhaHang.demo.dto.response.ApiResponse;
@@ -20,8 +21,9 @@ public class PhieuDatBanController {
     @GetMapping("/check-availability")
     public ResponseEntity<ApiResponse<Boolean>> checkAvailability(
             @RequestParam String maBan,
-            @RequestParam @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE_TIME) java.time.LocalDateTime thoiGianDen) {
-        boolean isAvailable = phieuDatBanService.checkTableAvailability(maBan, thoiGianDen);
+            @RequestParam @DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE_TIME) java.time.LocalDateTime thoiGianDen,
+            @RequestParam(required = false) Long excludePhieuId) {
+        boolean isAvailable = phieuDatBanService.checkTableAvailability(maBan, thoiGianDen, excludePhieuId);
         return ResponseEntity.ok(ApiResponse.success("Success", isAvailable));
     }
 

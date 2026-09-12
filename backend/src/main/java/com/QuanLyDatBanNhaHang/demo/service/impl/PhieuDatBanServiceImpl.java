@@ -167,10 +167,10 @@ public class PhieuDatBanServiceImpl implements PhieuDatBanService {
     }
 
     @Override
-    public boolean checkTableAvailability(String maBan, java.time.LocalDateTime thoiGianDen) {
+    public boolean checkTableAvailability(String maBan, java.time.LocalDateTime thoiGianDen, Long excludePhieuId) {
         java.time.LocalDateTime start = thoiGianDen.minusHours(2);
         java.time.LocalDateTime end = thoiGianDen.plusHours(2);
-        return chiTietPhieuDatBanRepository.findConflictingBookings(maBan, start, end, null).isEmpty();
+        return chiTietPhieuDatBanRepository.findConflictingBookings(maBan, start, end, excludePhieuId).isEmpty();
     }
 
     @Override

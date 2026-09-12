@@ -40,7 +40,7 @@ const CustomerLayout = () => {
         {/* Cụm Trái: Logo */}
         <div style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }} onClick={() => navigate('/')}>
           <FireOutlined style={{ fontSize: '28px', color: '#fa8c16', marginRight: '10px' }} />
-          <Title level={3} style={{ margin: 0, color: '#fa8c16' }}>Grand Restaurant</Title>
+          <Title level={3} style={{ margin: 0, color: '#fa8c16' }}>Ha Long Restaurant</Title>
         </div>
 
         {/* Cụm Phải: Nav & Auth */}
