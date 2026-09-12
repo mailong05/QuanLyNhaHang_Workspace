@@ -284,7 +284,7 @@ const POSManagement = () => {
         
         // KIỂM TRA BÀN TRỐNG TRƯỚC
         const checkRes = await apiClient.get(`/api/v1/phieu-dat-ban/check-availability?maBan=${selectedTable.maBan}&thoiGianDen=${thoiGianDenStr}`);
-        const isAvailable = checkRes.data?.data;
+        const isAvailable = checkRes;
         
         if (!isAvailable) {
             Modal.confirm({
