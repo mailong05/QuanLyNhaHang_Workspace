@@ -445,7 +445,7 @@ const BookingManagement = () => {
       </Modal>
 
       {/* Modal Chọn Bàn từ Sơ đồ */}
-      <Modal title="Chọn Bàn Từ Sơ Đồ" open={isMapModalVisible} onCancel={() => setIsMapModalVisible(false)} onOk={() => {
+      <Modal zIndex={1050} title="Chọn Bàn Từ Sơ Đồ" open={isMapModalVisible} onCancel={() => setIsMapModalVisible(false)} onOk={() => {
         if (selectedMapTable) {
             formEdit.setFieldsValue({ maBan: selectedMapTable.maBan });
             setIsMapModalVisible(false);
