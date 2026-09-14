@@ -18,6 +18,9 @@ import Dashboard from './pages/admin/Dashboard';
 import ShiftManagement from './pages/admin/ShiftManagement';
 import Analytics from './pages/admin/Analytics';
 import CustomerManagement from './pages/admin/CustomerManagement';
+import AreaManagement from './pages/admin/AreaManagement';
+import SystemSettings from './pages/admin/SystemSettings';
+import EmployeeManagement from './pages/admin/EmployeeManagement';
 import ComingSoon from './pages/admin/ComingSoon';
 
 function App() {
@@ -45,10 +48,9 @@ function App() {
             <Route path="shifts" element={<ShiftManagement />} />
                         <Route path="invoices" element={<InvoiceManagement />} />
             <Route path="customers" element={<CustomerManagement />} />
-            <Route path="categories" element={<ComingSoon title="Danh mục món ăn" />} />
-            <Route path="areas" element={<ComingSoon title="Quản lý khu vực" />} />
-            <Route path="employees" element={<ComingSoon title="Quản lý nhân viên" />} />
-            <Route path="settings" element={<ComingSoon title="Cài đặt hệ thống" />} />
+            <Route path="areas" element={<AreaManagement />} />
+            <Route path="employees" element={<EmployeeManagement />} />
+            <Route path="settings" element={<SystemSettings />} />
             
             {/* Dành riêng cho ADMIN */}
             <Route element={<ProtectedRoute allowedRoles={['ROLE_ADMIN', 'ADMIN']} />}>

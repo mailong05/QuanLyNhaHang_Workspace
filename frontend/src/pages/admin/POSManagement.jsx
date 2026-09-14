@@ -175,24 +175,64 @@ const POSManagement = () => {
     setIsTransferMergeModalVisible(true);
   };
 
-  const submitTransferMerge = () => {
+  const submitTransferMerge = async () => {
     if (!selectedMapTable) {
       message.error('Vui lòng chọn một bàn từ sơ đồ!');
       return;
     }
-    if (transferMergeTab === 'CHANGE') {
-      message.success(`Đổi bàn thành công sang Bàn ${selectedMapTable.maBan}!`);
-    } else {
-      message.success(`Gộp bàn thành công vào Bàn ${selectedMapTable.maBan}!`);
+
+    if (!currentOrder || !currentOrder.maPhieuDat) {
+      message.error('Không tìm thấy thông tin Phiếu đặt bàn của Hóa đơn này!');
+      return;
     }
-    setIsTransferMergeModalVisible(false);
-    fetchTables();
-    setSelectedTable(null);
+
+    try {
+      // 1. Fetch the full booking info first
+      const phieuRes = await apiClient.get(`/api/v1/phieu-dat-ban/${currentOrder.maPhieuDat}`);
+      // Interceptor returns response.data.data directly, so phieuRes is the DTO
+      const booking = phieuRes;
+
+      if (transferMergeTab === 'CHANGE') {
+        const payload = {
+          ...booking,
+          chiTiets: [{ maBan: selectedMapTable.maBan, maPhieuDat: booking.maPhieuDat }]
+        };
+        await apiClient.put(`/api/v1/phieu-dat-ban/${booking.maPhieuDat}`, payload);
+        message.success(`Đổi bàn thành công sang Bàn ${selectedMapTable.maBan}!`);
+      } else if (transferMergeTab === 'ADD') {
+        const oldTables = booking.chiTiets ? booking.chiTiets.map(ct => ({ maBan: ct.maBan, maPhieuDat: booking.maPhieuDat })) : [];
+        oldTables.push({ maBan: selectedMapTable.maBan, maPhieuDat: booking.maPhieuDat });
+        
+        const payload = {
+          ...booking,
+          chiTiets: oldTables
+        };
+        await apiClient.put(`/api/v1/phieu-dat-ban/${booking.maPhieuDat}`, payload);
+        message.success(`Ghép bàn thành công! Đã thêm Bàn ${selectedMapTable.maBan} vào phiếu.`);
+      } else {
+        const payload = {
+            maPhieuDatNguon: booking.maPhieuDat,
+            maBanDich: selectedMapTable.maBan
+        };
+        await apiClient.post('/api/v1/pos/gop-ban', payload);
+        message.success(`Gộp hóa đơn thành công vào Bàn ${selectedMapTable.maBan}!`);
+      }
+      setIsTransferMergeModalVisible(false);
+      fetchTables();
+      setSelectedTable(null);
+      setCurrentOrder(null);
+      setOrderItems([]);
+    } catch (error) {
+      message.error('Có lỗi xảy ra khi dời bàn!');
+    }
   };
 
   const renderMiniTableMap = (allowedStatuses) => {
+    const isGhepThemBan = transferMergeTab === 'ADD';
+    const targetArea = isGhepThemBan ? (selectedTable?.khuVuc || mapFilterArea) : mapFilterArea;
+    
     const filteredTables = tables.filter(t => 
-      t.khuVuc === mapFilterArea && allowedStatuses.includes(t.trangThai) && 
+      t.khuVuc === targetArea && allowedStatuses.includes(t.trangThai) && 
       (selectedTable?.maBan !== t.maBan)
     );
 
@@ -216,11 +256,17 @@ const POSManagement = () => {
 
     return (
       <>
-        <Tabs activeKey={mapFilterArea} onChange={setMapFilterArea}>
-          <Tabs.TabPane tab="Tầng trệt" key="TANG_TRET" />
-          <Tabs.TabPane tab="Lầu 1" key="LAU_1" />
-          <Tabs.TabPane tab="Phòng VIP" key="PHONG_VIP" />
-        </Tabs>
+        {!isGhepThemBan ? (
+          <Tabs activeKey={mapFilterArea} onChange={setMapFilterArea}>
+            <Tabs.TabPane tab="Tầng trệt" key="TANG_TRET" />
+            <Tabs.TabPane tab="Lầu 1" key="LAU_1" />
+            <Tabs.TabPane tab="Phòng VIP" key="PHONG_VIP" />
+          </Tabs>
+        ) : (
+          <div style={{ padding: '8px', backgroundColor: '#e6f7ff', borderRadius: '4px', border: '1px solid #91d5ff', marginBottom: '16px' }}>
+            <Typography.Text type="secondary">Đang lọc bàn cùng khu vực ({selectedTable?.khuVuc}) để ghép bàn.</Typography.Text>
+          </div>
+        )}
         <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', marginTop: 16 }}>
           {filteredTables.map(t => (
             <Card 
@@ -708,11 +754,12 @@ const POSManagement = () => {
             setTransferMergeTab(e.target.value);
             setSelectedMapTable(null);
           }} style={{ marginBottom: 16 }}>
-          <Radio.Button value="CHANGE"><RetweetOutlined /> Đổi sang Bàn trống</Radio.Button>
-          <Radio.Button value="MERGE"><MergeCellsOutlined /> Gộp vào Bàn đang phục vụ</Radio.Button>
+          <Radio.Button value="CHANGE"><RetweetOutlined /> Đổi Bàn</Radio.Button>
+          <Radio.Button value="ADD"><PlusOutlined /> Ghép Thêm Bàn</Radio.Button>
+          <Radio.Button value="MERGE"><MergeCellsOutlined /> Gộp Hóa Đơn</Radio.Button>
         </Radio.Group>
         <Card size="small" title="Chọn bàn mục tiêu từ Sơ đồ">
-          {transferMergeTab === 'CHANGE' 
+          {transferMergeTab === 'CHANGE' || transferMergeTab === 'ADD'
             ? renderMiniTableMap(['TRONG']) 
             : renderMiniTableMap(['DANG_SUDUNG', 'DA_DAT'])}
         </Card>

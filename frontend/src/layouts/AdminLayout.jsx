@@ -95,8 +95,7 @@ const AdminLayout = () => {
           label: 'Thực đơn', 
           roles: ['ADMIN', 'ROLE_ADMIN', 'QUAN_LY'],
           children: [
-            { key: '/admin/menu', label: 'Món ăn', roles: ['ADMIN', 'ROLE_ADMIN', 'QUAN_LY'] },
-            { key: '/admin/categories', label: 'Danh mục món', roles: ['ADMIN', 'ROLE_ADMIN', 'QUAN_LY'] }
+            { key: '/admin/menu', label: 'Món ăn', roles: ['ADMIN', 'ROLE_ADMIN', 'QUAN_LY'] }
           ]
         },
         { 

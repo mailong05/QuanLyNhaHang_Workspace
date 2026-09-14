@@ -5,6 +5,8 @@ import org.hibernate.annotations.Nationalized;
 import com.QuanLyDatBanNhaHang.demo.enums.*;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -20,6 +22,8 @@ import java.util.List;
 @Builder
 @Entity
 @Table(name = "KhuVuc")
+@SQLDelete(sql = "UPDATE KhuVuc SET deleted_at = CURRENT_TIMESTAMP WHERE id=?")
+@SQLRestriction("deleted_at IS NULL")
 public class KhuVuc extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
