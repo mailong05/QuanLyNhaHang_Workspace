@@ -1,5 +1,6 @@
 package com.QuanLyDatBanNhaHang.demo.service.impl;
 
+import com.QuanLyDatBanNhaHang.demo.dto.request.PosGopBanRequestDTO;
 import com.QuanLyDatBanNhaHang.demo.dto.request.PosMoBanRequestDTO;
 import com.QuanLyDatBanNhaHang.demo.dto.request.PosThemMonRequestDTO;
 import com.QuanLyDatBanNhaHang.demo.dto.response.HoaDonResponseDTO;
@@ -248,6 +249,104 @@ public class PosOperationServiceImpl implements PosOperationService {
 
         return mapToDTO(hoaDon);
     }
+    
+    @Override
+    @Transactional
+    public HoaDonResponseDTO gopBan(PosGopBanRequestDTO request) {
+        PhieuDatBan phieuNguon = phieuDatBanRepository.findByMaPhieuDatIgnoreCaseWithRelations(request.getMaPhieuDatNguon())
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy Phiếu đặt nguồn: " + request.getMaPhieuDatNguon()));
+
+        if (phieuNguon.getTrangThai() != TrangThaiPhieuDatBan.DANG_PHUC_VU) {
+            throw new IllegalArgumentException("Phiếu đặt nguồn không ở trạng thái đang phục vụ");
+        }
+
+        HoaDon hoaDonNguon = hoaDonRepository.findAll().stream()
+                .filter(hd -> hd.getPhieuDatBan().getId().equals(phieuNguon.getId()) && hd.getTrangThaiThanhToan() == TrangThaiThanhToanHoaDon.CHUA_THANH_TOAN)
+                .findFirst()
+                .orElse(null);
+
+        BanAn banDich = banAnRepository.findByMaBanIgnoreCase(request.getMaBanDich())
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy Bàn đích: " + request.getMaBanDich()));
+
+        ChiTietPhieuDatBan ctDich = chiTietPhieuDatBanRepository.findAll().stream()
+                .filter(ct -> ct.getBanAn().getId().equals(banDich.getId()) && ct.getPhieuDatBan().getTrangThai() == TrangThaiPhieuDatBan.DANG_PHUC_VU)
+                .findFirst()
+                .orElseThrow(() -> new ResourceNotFoundException("Bàn đích không đang phục vụ"));
+
+        PhieuDatBan phieuDich = ctDich.getPhieuDatBan();
+        
+        if (phieuNguon.getId().equals(phieuDich.getId())) {
+             throw new IllegalArgumentException("Hai bàn đang thuộc cùng 1 phiếu, không thể gộp");
+        }
+
+        HoaDon hoaDonDich = hoaDonRepository.findAll().stream()
+                .filter(hd -> hd.getPhieuDatBan().getId().equals(phieuDich.getId()) && hd.getTrangThaiThanhToan() == TrangThaiThanhToanHoaDon.CHUA_THANH_TOAN)
+                .findFirst()
+                .orElse(null);
+
+        if (hoaDonNguon != null && hoaDonDich != null) {
+            for (ChiTietHoaDon ctNguon : hoaDonNguon.getChiTietHoaDons()) {
+                Optional<ChiTietHoaDon> existing = hoaDonDich.getChiTietHoaDons().stream()
+                        .filter(ct -> ct.getMonAn().getId().equals(ctNguon.getMonAn().getId()))
+                        .findFirst();
+                if (existing.isPresent()) {
+                    ChiTietHoaDon ctD = existing.get();
+                    ctD.setSoLuong(ctD.getSoLuong() + ctNguon.getSoLuong());
+                    ctD.setThanhTien(BigDecimal.valueOf(ctD.getSoLuong()).multiply(ctD.getDonGiaLuuTru()));
+                    chiTietHoaDonRepository.save(ctD);
+                } else {
+                    ChiTietHoaDon newCt = ChiTietHoaDon.builder()
+                            .hoaDon(hoaDonDich)
+                            .monAn(ctNguon.getMonAn())
+                            .soLuong(ctNguon.getSoLuong())
+                            .donGiaLuuTru(ctNguon.getDonGiaLuuTru())
+                            .thanhTien(ctNguon.getThanhTien())
+                            .ghiChu(ctNguon.getGhiChu())
+                            .build();
+                    hoaDonDich.getChiTietHoaDons().add(newCt);
+                    chiTietHoaDonRepository.save(newCt);
+                }
+            }
+
+            chiTietHoaDonRepository.deleteAll(hoaDonNguon.getChiTietHoaDons());
+            hoaDonNguon.getChiTietHoaDons().clear();
+            hoaDonRepository.delete(hoaDonNguon);
+
+            BigDecimal tongTienGoc = hoaDonDich.getChiTietHoaDons().stream().map(ChiTietHoaDon::getThanhTien).reduce(BigDecimal.ZERO, BigDecimal::add);
+            hoaDonDich.setTongTienGoc(tongTienGoc);
+            BigDecimal thueSuat = hoaDonDich.getThueSuat() != null ? hoaDonDich.getThueSuat().divide(BigDecimal.valueOf(100), 2, java.math.RoundingMode.HALF_UP) : BigDecimal.ZERO;
+            BigDecimal tienThue = tongTienGoc.multiply(thueSuat);
+            hoaDonDich.setTienThue(tienThue);
+            BigDecimal tienGiamGia = hoaDonDich.getTienGiamGia() != null ? hoaDonDich.getTienGiamGia() : BigDecimal.ZERO;
+            hoaDonDich.setTongThanhToan(tongTienGoc.add(tienThue).subtract(tienGiamGia));
+            hoaDonDich = hoaDonRepository.save(hoaDonDich);
+        } else if (hoaDonNguon != null && hoaDonDich == null) {
+            hoaDonNguon.setPhieuDatBan(phieuDich);
+            hoaDonRepository.save(hoaDonNguon);
+            hoaDonDich = hoaDonNguon;
+        }
+
+        phieuNguon.setTrangThai(TrangThaiPhieuDatBan.DA_GOP_BAN);
+        // Chuyển quyền sở hữu các bàn từ Phiếu Nguồn sang Phiếu Đích để giữ nguyên trạng thái Đang phục vụ
+        for (ChiTietPhieuDatBan ctNguon : phieuNguon.getChiTietPhieuDatBans()) {
+            ChiTietPhieuDatBan newCtPhieu = ChiTietPhieuDatBan.builder()
+                    .phieuDatBan(phieuDich)
+                    .banAn(ctNguon.getBanAn())
+                    .ghiChu("Bàn gộp từ phiếu " + phieuNguon.getMaPhieuDat())
+                    .build();
+            phieuDich.getChiTietPhieuDatBans().add(newCtPhieu);
+            chiTietPhieuDatBanRepository.save(newCtPhieu);
+        }
+        phieuDatBanRepository.save(phieuNguon);
+        phieuDatBanRepository.save(phieuDich);
+
+        if (hoaDonDich != null) {
+            return mapToDTO(hoaDonDich);
+        } else {
+            return null; // Both didn't have invoices yet
+        }
+    }
+
     private HoaDonResponseDTO mapToDTO(HoaDon hd) {
         List<com.QuanLyDatBanNhaHang.demo.dto.response.ChiTietHoaDonResponseDTO> chiTiets = new ArrayList<>();
         if (hd.getChiTietHoaDons() != null) {

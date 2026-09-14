@@ -38,4 +38,9 @@ public class PosOperationController {
             @Valid @RequestBody com.QuanLyDatBanNhaHang.demo.dto.request.PosThanhToanRequestDTO request) {
         return ResponseEntity.ok(ApiResponse.success(posOperationService.thanhToanHoaDon(hoaDonId, request)));
     }
+
+    @PostMapping("/gop-ban")
+    public ResponseEntity<ApiResponse<HoaDonResponseDTO>> gopBan(@Valid @RequestBody com.QuanLyDatBanNhaHang.demo.dto.request.PosGopBanRequestDTO request) {
+        return ResponseEntity.ok(ApiResponse.success(posOperationService.gopBan(request)));
+    }
 }

@@ -10,6 +10,7 @@ import com.QuanLyDatBanNhaHang.demo.entity.ChiTietPhieuDatBan;
 import com.QuanLyDatBanNhaHang.demo.entity.KhachHang;
 import com.QuanLyDatBanNhaHang.demo.entity.NhanVien;
 import com.QuanLyDatBanNhaHang.demo.entity.PhieuDatBan;
+import com.QuanLyDatBanNhaHang.demo.enums.TrangThaiPhieuDatBan;
 import com.QuanLyDatBanNhaHang.demo.exception.DuplicateResourceException;
 import com.QuanLyDatBanNhaHang.demo.exception.ResourceNotFoundException;
 import com.QuanLyDatBanNhaHang.demo.repository.BanAnRepository;
@@ -115,7 +116,7 @@ public class PhieuDatBanServiceImpl implements PhieuDatBanService {
         PhieuDatBan pdb = phieuDatBanRepository.findByMaPhieuDatIgnoreCaseWithRelations(maPhieuDat)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy Phiếu đặt với mã: " + maPhieuDat));
 
-        if (requestDTO.getThoiGianDen().isBefore(LocalDateTime.now().plusMinutes(30))) {
+        if (!requestDTO.getThoiGianDen().equals(pdb.getThoiGianDen()) && requestDTO.getThoiGianDen().isBefore(LocalDateTime.now().plusMinutes(30))) {
             throw new IllegalArgumentException("Thời gian đến phải lớn hơn thời gian hiện tại ít nhất 30 phút.");
         }
 
@@ -149,11 +150,31 @@ public class PhieuDatBanServiceImpl implements PhieuDatBanService {
 
         // Xóa chi tiết cũ và map chi tiết mới
         if (requestDTO.getChiTiets() != null) {
+            // Lấy danh sách mã bàn mới
+            java.util.List<String> newTableCodes = requestDTO.getChiTiets().stream().map(ChiTietPhieuDatBanCreateRequestDTO::getMaBan).toList();
+            // Restore trạng thái bàn cũ về TRONG nếu phiếu đang phục vụ, nhưng chỉ các bàn KHÔNG nằm trong danh sách mới
+            if (pdb.getTrangThai() == TrangThaiPhieuDatBan.DANG_PHUC_VU || pdb.getTrangThai() == TrangThaiPhieuDatBan.DA_GOP_BAN || pdb.getTrangThai() == TrangThaiPhieuDatBan.HOAN_THANH || pdb.getTrangThai() == TrangThaiPhieuDatBan.DA_HUY) {
+                for (ChiTietPhieuDatBan oldCt : pdb.getChiTietPhieuDatBans()) {
+                    if (!newTableCodes.contains(oldCt.getBanAn().getMaBan())) {
+                        oldCt.getBanAn().setTrangThai(com.QuanLyDatBanNhaHang.demo.enums.TrangThaiBanAn.TRONG);
+                        banAnRepository.save(oldCt.getBanAn());
+                    }
+                }
+            }
+
             pdb.getChiTietPhieuDatBans().clear();
             for (ChiTietPhieuDatBanCreateRequestDTO cReq : requestDTO.getChiTiets()) {
                 BanAn ba = banAnRepository.findByMaBanIgnoreCase(cReq.getMaBan())
                         .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy Bàn ăn: " + cReq.getMaBan()));
                 
+                if (requestDTO.getTrangThai() == TrangThaiPhieuDatBan.DANG_PHUC_VU) {
+                    ba.setTrangThai(com.QuanLyDatBanNhaHang.demo.enums.TrangThaiBanAn.DANG_SUDUNG);
+                    banAnRepository.save(ba);
+                } else if (requestDTO.getTrangThai() == TrangThaiPhieuDatBan.DA_XAC_NHAN) {
+                    ba.setTrangThai(com.QuanLyDatBanNhaHang.demo.enums.TrangThaiBanAn.DA_DAT);
+                    banAnRepository.save(ba);
+                }
+
                 ChiTietPhieuDatBan ct = ChiTietPhieuDatBan.builder()
                         .phieuDatBan(pdb)
                         .banAn(ba)
@@ -161,6 +182,19 @@ public class PhieuDatBanServiceImpl implements PhieuDatBanService {
                         .build();
                 pdb.getChiTietPhieuDatBans().add(ct);
             }
+        } else {
+             // Cập nhật trạng thái phiếu mà không đổi bàn (ví dụ Hủy phiếu, Thanh toán)
+             if (requestDTO.getTrangThai() == TrangThaiPhieuDatBan.HOAN_THANH || requestDTO.getTrangThai() == TrangThaiPhieuDatBan.DA_HUY || requestDTO.getTrangThai() == TrangThaiPhieuDatBan.DA_GOP_BAN) {
+                 for (ChiTietPhieuDatBan oldCt : pdb.getChiTietPhieuDatBans()) {
+                     oldCt.getBanAn().setTrangThai(com.QuanLyDatBanNhaHang.demo.enums.TrangThaiBanAn.TRONG);
+                     banAnRepository.save(oldCt.getBanAn());
+                 }
+             } else if (requestDTO.getTrangThai() == TrangThaiPhieuDatBan.DANG_PHUC_VU) {
+                 for (ChiTietPhieuDatBan oldCt : pdb.getChiTietPhieuDatBans()) {
+                     oldCt.getBanAn().setTrangThai(com.QuanLyDatBanNhaHang.demo.enums.TrangThaiBanAn.DANG_SUDUNG);
+                     banAnRepository.save(oldCt.getBanAn());
+                 }
+             }
         }
 
         return convertToResponseDTO(phieuDatBanRepository.save(pdb));

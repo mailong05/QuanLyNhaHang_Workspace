@@ -9,4 +9,5 @@ public interface PosOperationService {
     HoaDonResponseDTO layHoaDonTheoBan(Long banId);
     HoaDonResponseDTO themMon(PosThemMonRequestDTO request);
     HoaDonResponseDTO thanhToanHoaDon(Long hoaDonId, com.QuanLyDatBanNhaHang.demo.dto.request.PosThanhToanRequestDTO request);
+    HoaDonResponseDTO gopBan(com.QuanLyDatBanNhaHang.demo.dto.request.PosGopBanRequestDTO request);
 }

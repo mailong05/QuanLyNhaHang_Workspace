@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Table, Tag, Button, Space, Card, message, Tabs, Modal, Form, Select, Popconfirm, Row, Col, Typography, InputNumber, DatePicker, Input, Radio } from 'antd';
-import { CheckCircleOutlined, CloseCircleOutlined, RightCircleOutlined, EditOutlined, RetweetOutlined, MergeCellsOutlined } from '@ant-design/icons';
+import { CheckCircleOutlined, CloseCircleOutlined, RightCircleOutlined, EditOutlined, RetweetOutlined, MergeCellsOutlined, PlusOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import apiClient from '../../services/apiClient';
 
@@ -63,9 +63,9 @@ const BookingManagement = () => {
     fetchAllTables();
   }, []);
 
-  const filteredBookings = bookings.filter(b => b.trangThai === activeTab);
-  const completedAndMergedBookings = bookings.filter(b => (activeTab === 'HOAN_THANH' && (b.trangThai === 'HOAN_THANH' || b.trangThai === 'DA_GOP_BAN')));
-  const displayBookings = activeTab === 'HOAN_THANH' ? completedAndMergedBookings : filteredBookings;
+  const displayBookings = activeTab === 'HOAN_THANH' 
+    ? bookings.filter(b => b.trangThai === 'HOAN_THANH' || b.trangThai === 'HOAN_TAT') 
+    : bookings.filter(b => b.trangThai === activeTab);
 
   const getStatusTag = (status) => {
     switch (status) {
@@ -78,7 +78,8 @@ const BookingManagement = () => {
       case 'DANG_PHUC_VU':
         return <Tag color="warning">Đang phục vụ</Tag>;
       case 'HOAN_THANH':
-        return <Tag color="default">Hoàn thành</Tag>;
+      case 'HOAN_TAT':
+        return <Tag color="success">Hoàn thành</Tag>;
       case 'DA_GOP_BAN':
         return <Tag color="purple">Đã gộp bàn</Tag>;
       default:
@@ -218,27 +219,38 @@ const BookingManagement = () => {
     }
 
     const { soLuongNguoi } = transferMergeBooking;
-    if (selectedMapTable.soGhe < soLuongNguoi) {
+    if (transferMergeTab !== 'ADD' && selectedMapTable.soGhe < soLuongNguoi) {
       message.warning('Lưu ý: Bàn được chọn có sức chứa nhỏ hơn số lượng khách!');
     }
 
     try {
       if (transferMergeTab === 'CHANGE') {
-        // Gọi API Đổi Bàn giả định
-        message.success(`Đổi bàn thành công sang Bàn ${selectedMapTable.maBan}!`);
-      } else {
-        // Gộp Bàn logic
-        // 1. Chạy thuật toán Deep Merge (Mock)
-        const mockOrderA = [{ maMon: 'M01', soLuong: 2, donGia: 50000, thanhTien: 100000 }];
-        const mockOrderC = [{ maMon: 'M01', soLuong: 1, donGia: 50000, thanhTien: 50000 }, { maMon: 'M02', soLuong: 1, donGia: 30000, thanhTien: 30000 }];
-        const mergedResult = mockDeepMergeOrders(mockOrderA, mockOrderC);
-        console.log('Thuật toán Deep Merge Result:', mergedResult);
-        
-        // 2. Cập nhật trạng thái phiếu nguồn thành DA_GOP_BAN
-        const payload = { ...transferMergeBooking, trangThai: 'DA_GOP_BAN' };
+        // ĐỔI BÀN SANG BÀN TRỐNG
+        const payload = {
+          ...transferMergeBooking,
+          chiTiets: [{ maBan: selectedMapTable.maBan, maPhieuDat: transferMergeBooking.maPhieuDat }]
+        };
         await apiClient.put(`/api/v1/phieu-dat-ban/${transferMergeBooking.maPhieuDat}`, payload);
+        message.success(`Đổi bàn thành công sang Bàn ${selectedMapTable.maBan}!`);
+      } else if (transferMergeTab === 'ADD') {
+        // GHÉP THÊM BÀN TRỐNG
+        const oldTables = transferMergeBooking.chiTiets ? transferMergeBooking.chiTiets.map(ct => ({ maBan: ct.maBan, maPhieuDat: transferMergeBooking.maPhieuDat })) : [];
+        oldTables.push({ maBan: selectedMapTable.maBan, maPhieuDat: transferMergeBooking.maPhieuDat });
         
-        message.success(`Gộp bàn thành công vào Bàn ${selectedMapTable.maBan}!`);
+        const payload = {
+          ...transferMergeBooking,
+          chiTiets: oldTables
+        };
+        await apiClient.put(`/api/v1/phieu-dat-ban/${transferMergeBooking.maPhieuDat}`, payload);
+        message.success(`Ghép bàn thành công! Đã thêm Bàn ${selectedMapTable.maBan} vào phiếu.`);
+      } else {
+        // GỘP HÓA ĐƠN
+        const payload = {
+            maPhieuDatNguon: transferMergeBooking.maPhieuDat,
+            maBanDich: selectedMapTable.maBan
+        };
+        await apiClient.post('/api/v1/pos/gop-ban', payload);
+        message.success(`Gộp hóa đơn thành công vào Bàn ${selectedMapTable.maBan}!`);
       }
       setIsTransferMergeModalVisible(false);
       fetchBookings();
@@ -249,8 +261,13 @@ const BookingManagement = () => {
 
   // Render Sơ đồ Bàn Thu Nhỏ
   const renderMiniTableMap = (allowedStatuses, currentTable) => {
+    const isGhepThemBan = transferMergeTab === 'ADD';
+    // Tìm khu vực của currentTable
+    const currentTableArea = allTables.find(t => t.maBan === currentTable)?.khuVuc;
+    const targetArea = isGhepThemBan ? (currentTableArea || mapFilterArea) : mapFilterArea;
+
     const filteredTables = allTables.filter(t => 
-      t.khuVuc === mapFilterArea && allowedStatuses.includes(t.trangThai) && 
+      t.khuVuc === targetArea && allowedStatuses.includes(t.trangThai) && 
       (currentTable !== t.maBan) // Không hiện bàn hiện tại của khách
     );
 
@@ -274,11 +291,17 @@ const BookingManagement = () => {
 
     return (
       <div style={{ marginTop: 16 }}>
-        <Tabs activeKey={mapFilterArea} onChange={setMapFilterArea} items={[
-          { key: 'TANG_TRET', label: 'Tầng trệt' },
-          { key: 'LAU_1', label: 'Lầu 1' },
-          { key: 'PHONG_VIP', label: 'Phòng VIP' }
-        ]} />
+        {!isGhepThemBan ? (
+          <Tabs activeKey={mapFilterArea} onChange={setMapFilterArea} items={[
+            { key: 'TANG_TRET', label: 'Tầng trệt' },
+            { key: 'LAU_1', label: 'Lầu 1' },
+            { key: 'PHONG_VIP', label: 'Phòng VIP' }
+          ]} />
+        ) : (
+          <div style={{ marginBottom: 16, padding: 8, backgroundColor: '#e6f7ff', borderRadius: 4, border: '1px solid #91d5ff' }}>
+            <Typography.Text type="secondary">Đang lọc bàn cùng khu vực ({currentTableArea}) để ghép bàn.</Typography.Text>
+          </div>
+        )}
         <Row gutter={[12, 12]} style={{ maxHeight: 300, overflowY: 'auto' }}>
           {filteredTables.length > 0 ? filteredTables.map(table => {
             const isSelected = selectedMapTable?.id === table.id;
@@ -369,7 +392,8 @@ const BookingManagement = () => {
           <TabPane tab="Chờ xác nhận" key="CHO_XAC_NHAN" />
           <TabPane tab="Đã xác nhận" key="DA_XAC_NHAN" />
           <TabPane tab="Đang phục vụ" key="DANG_PHUC_VU" />
-          <TabPane tab="Hoàn thành & Gộp" key="HOAN_THANH" />
+          <TabPane tab="Đã hoàn thành" key="HOAN_THANH" />
+          <TabPane tab="Đã gộp bàn" key="DA_GOP_BAN" />
           <TabPane tab="Đã hủy" key="DA_HUY" />
         </Tabs>
         <Table columns={columns} dataSource={displayBookings} rowKey="id" loading={loading} pagination={{ pageSize: 10 }} />
@@ -434,11 +458,12 @@ const BookingManagement = () => {
             setTransferMergeTab(e.target.value);
             setSelectedMapTable(null);
           }} style={{ marginBottom: 16 }}>
-          <Radio.Button value="CHANGE"><RetweetOutlined /> Đổi sang Bàn trống</Radio.Button>
-          <Radio.Button value="MERGE"><MergeCellsOutlined /> Gộp vào Bàn đang phục vụ</Radio.Button>
+          <Radio.Button value="CHANGE"><RetweetOutlined /> Đổi Bàn</Radio.Button>
+          <Radio.Button value="ADD"><PlusOutlined /> Ghép Thêm Bàn</Radio.Button>
+          <Radio.Button value="MERGE"><MergeCellsOutlined /> Gộp Hóa Đơn</Radio.Button>
         </Radio.Group>
         <Card size="small" title="Chọn bàn mục tiêu từ Sơ đồ">
-          {transferMergeTab === 'CHANGE' 
+          {transferMergeTab === 'CHANGE' || transferMergeTab === 'ADD'
             ? renderMiniTableMap(['TRONG'], transferMergeBooking?.chiTiets?.[0]?.maBan) 
             : renderMiniTableMap(['DANG_SUDUNG', 'DA_DAT'], transferMergeBooking?.chiTiets?.[0]?.maBan)}
         </Card>
