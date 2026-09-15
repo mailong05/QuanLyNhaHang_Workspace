@@ -2,12 +2,14 @@ package com.QuanLyDatBanNhaHang.demo.service.impl;
 
 import com.QuanLyDatBanNhaHang.demo.dto.request.PosGopBanRequestDTO;
 import com.QuanLyDatBanNhaHang.demo.dto.request.PosMoBanRequestDTO;
+import com.QuanLyDatBanNhaHang.demo.dto.request.PosThanhToanRequestDTO;
 import com.QuanLyDatBanNhaHang.demo.dto.request.PosThemMonRequestDTO;
 import com.QuanLyDatBanNhaHang.demo.dto.response.HoaDonResponseDTO;
 import com.QuanLyDatBanNhaHang.demo.entity.*;
 import com.QuanLyDatBanNhaHang.demo.enums.*;
 import com.QuanLyDatBanNhaHang.demo.exception.ResourceNotFoundException;
 import com.QuanLyDatBanNhaHang.demo.repository.*;
+import com.QuanLyDatBanNhaHang.demo.repository.HoaDonRepository;
 import com.QuanLyDatBanNhaHang.demo.service.PosOperationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -202,7 +204,7 @@ public class PosOperationServiceImpl implements PosOperationService {
 
     @Override
     @Transactional
-    public HoaDonResponseDTO thanhToanHoaDon(Long hoaDonId, com.QuanLyDatBanNhaHang.demo.dto.request.PosThanhToanRequestDTO request) {
+    public HoaDonResponseDTO thanhToanHoaDon(Long hoaDonId, PosThanhToanRequestDTO request) {
         HoaDon hoaDon = hoaDonRepository.findById(hoaDonId)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy Hóa đơn"));
 

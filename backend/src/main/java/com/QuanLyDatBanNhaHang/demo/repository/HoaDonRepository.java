@@ -1,6 +1,7 @@
 package com.QuanLyDatBanNhaHang.demo.repository;
 
 import com.QuanLyDatBanNhaHang.demo.entity.HoaDon;
+import com.QuanLyDatBanNhaHang.demo.enums.TrangThaiThanhToanHoaDon;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -40,4 +41,5 @@ public interface HoaDonRepository extends JpaRepository<HoaDon, Long> {
 
     @Query("SELECT h FROM HoaDon h WHERE h.trangThaiThanhToan = com.QuanLyDatBanNhaHang.demo.enums.TrangThaiThanhToanHoaDon.DA_THANH_TOAN ORDER BY h.thoiGianThanhToan DESC")
     java.util.List<HoaDon> findRecentTransactions(Pageable pageable);
+
 }
