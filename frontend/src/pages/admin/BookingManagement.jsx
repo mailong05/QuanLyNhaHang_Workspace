@@ -89,26 +89,18 @@ const BookingManagement = () => {
 
   // --- ACTIONS ---
 
-  const showAssignTableModal = (record) => {
-    setAssigningBooking(record);
-    form.resetFields();
-    fetchAllTables();
-    setIsAssignModalVisible(true);
-  };
-
-  const handleApprove = async (values) => {
+  const handleApproveDirectly = async (record) => {
     try {
+      const res = await apiClient.get(`/api/v1/phieu-dat-ban/${record.maPhieuDat}`);
+      const fullBooking = res.data ? res.data : res;
+      
       const payload = {
-        thoiGianDen: assigningBooking.thoiGianDen,
-        soLuongNguoi: assigningBooking.soLuongNguoi,
-        ghiChu: assigningBooking.ghiChu,
-        tienDatCoc: assigningBooking.tienDatCoc,
-        trangThai: 'DA_XAC_NHAN',
-        chiTiets: [{ maBan: values.maBan, maPhieuDat: assigningBooking.maPhieuDat }]
+        ...fullBooking,
+        trangThai: 'DA_XAC_NHAN'
       };
-      await apiClient.put(`/api/v1/phieu-dat-ban/${assigningBooking.maPhieuDat}`, payload);
-      message.success('Duyệt phiếu và xếp bàn thành công!');
-      setIsAssignModalVisible(false);
+      
+      await apiClient.put(`/api/v1/phieu-dat-ban/${record.maPhieuDat}`, payload);
+      message.success('Duyệt phiếu đặt bàn thành công!');
       fetchBookings();
     } catch (error) {
       message.error(error.message || 'Lỗi khi duyệt phiếu');
@@ -357,7 +349,7 @@ const BookingManagement = () => {
           <Space size="middle">
             {record.trangThai === 'CHO_XAC_NHAN' && (
               <>
-                <Button type="primary" icon={<CheckCircleOutlined />} size="small" style={{ backgroundColor: '#52c41a' }} onClick={() => showAssignTableModal(record)}>
+                <Button type="primary" icon={<CheckCircleOutlined />} size="small" style={{ backgroundColor: '#52c41a' }} onClick={() => handleApproveDirectly(record)}>
                   Duyệt
                 </Button>
                 <Button icon={<EditOutlined />} size="small" onClick={() => handleOpenEdit(record)}>Sửa</Button>
@@ -399,20 +391,7 @@ const BookingManagement = () => {
         <Table columns={columns} dataSource={displayBookings} rowKey="id" loading={loading} pagination={{ pageSize: 10 }} />
       </Card>
 
-      {/* Modal Xếp bàn (Duyệt) */}
-      <Modal title={`Xếp bàn cho phiếu ${assigningBooking?.maPhieuDat || ''}`} open={isAssignModalVisible} onCancel={() => setIsAssignModalVisible(false)} onOk={() => form.submit()} okText="Xác nhận Duyệt" destroyOnClose>
-        <Form form={form} layout="vertical" onFinish={handleApprove}>
-          <Form.Item name="maBan" label="Chọn bàn trống" rules={[{ required: true }]}>
-            <Select placeholder="-- Chọn Bàn --">
-              {allTables.filter(t => t.trangThai === 'TRONG').map(table => (
-                <Option key={table.id} value={table.maBan}>
-                  Bàn {table.maBan} - {table.viTri} (Sức chứa: {table.soGhe})
-                </Option>
-              ))}
-            </Select>
-          </Form.Item>
-        </Form>
-      </Modal>
+      
 
       {/* Modal Sửa Phiếu */}
       <Modal title="Chỉnh sửa Phiếu Đặt Bàn" open={isEditModalVisible} onCancel={() => setIsEditModalVisible(false)} onOk={() => formEdit.submit()} okText="Lưu Thay Đổi" width={600} destroyOnClose>
