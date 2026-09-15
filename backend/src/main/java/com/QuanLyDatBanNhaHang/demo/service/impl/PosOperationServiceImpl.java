@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
@@ -33,6 +34,7 @@ public class PosOperationServiceImpl implements PosOperationService {
     private final MonAnRepository monAnRepository;
     private final ChiTietPhieuDatBanRepository chiTietPhieuDatBanRepository;
     private final ChiTietHoaDonRepository chiTietHoaDonRepository;
+    private final KhuyenMaiRepository khuyenMaiRepository;
 
     @Override
     @Transactional
@@ -250,6 +252,29 @@ public class PosOperationServiceImpl implements PosOperationService {
         return mapToDTO(hoaDon);
     }
     
+
+    @Override
+    @Transactional
+    public HoaDonResponseDTO xoaMon(Long hoaDonId, Long chiTietId) {
+        HoaDon hoaDon = hoaDonRepository.findById(hoaDonId)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy Hóa đơn"));
+        
+        ChiTietHoaDon chiTiet = chiTietHoaDonRepository.findById(chiTietId)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy Chi tiết món"));
+        
+        if (!chiTiet.getHoaDon().getId().equals(hoaDonId)) {
+            throw new IllegalArgumentException("Chi tiết món không thuộc Hóa đơn này");
+        }
+
+        hoaDon.getChiTietHoaDons().remove(chiTiet);
+        chiTietHoaDonRepository.delete(chiTiet);
+        
+        calculateTotalsAndDiscounts(hoaDon);
+        
+        hoaDon = hoaDonRepository.save(hoaDon);
+        return mapToDTO(hoaDon);
+    }
+
     @Override
     @Transactional
     public HoaDonResponseDTO gopBan(PosGopBanRequestDTO request) {
@@ -312,13 +337,7 @@ public class PosOperationServiceImpl implements PosOperationService {
             hoaDonNguon.getChiTietHoaDons().clear();
             hoaDonRepository.delete(hoaDonNguon);
 
-            BigDecimal tongTienGoc = hoaDonDich.getChiTietHoaDons().stream().map(ChiTietHoaDon::getThanhTien).reduce(BigDecimal.ZERO, BigDecimal::add);
-            hoaDonDich.setTongTienGoc(tongTienGoc);
-            BigDecimal thueSuat = hoaDonDich.getThueSuat() != null ? hoaDonDich.getThueSuat().divide(BigDecimal.valueOf(100), 2, java.math.RoundingMode.HALF_UP) : BigDecimal.ZERO;
-            BigDecimal tienThue = tongTienGoc.multiply(thueSuat);
-            hoaDonDich.setTienThue(tienThue);
-            BigDecimal tienGiamGia = hoaDonDich.getTienGiamGia() != null ? hoaDonDich.getTienGiamGia() : BigDecimal.ZERO;
-            hoaDonDich.setTongThanhToan(tongTienGoc.add(tienThue).subtract(tienGiamGia));
+            calculateTotalsAndDiscounts(hoaDonDich);
             hoaDonDich = hoaDonRepository.save(hoaDonDich);
         } else if (hoaDonNguon != null && hoaDonDich == null) {
             hoaDonNguon.setPhieuDatBan(phieuDich);
@@ -345,6 +364,44 @@ public class PosOperationServiceImpl implements PosOperationService {
         } else {
             return null; // Both didn't have invoices yet
         }
+    }
+
+    
+    private void calculateTotalsAndDiscounts(HoaDon hoaDon) {
+        BigDecimal tongTienGoc = hoaDon.getChiTietHoaDons() != null ? hoaDon.getChiTietHoaDons().stream()
+                .map(ChiTietHoaDon::getThanhTien)
+                .reduce(BigDecimal.ZERO, BigDecimal::add) : BigDecimal.ZERO;
+        hoaDon.setTongTienGoc(tongTienGoc);
+
+        BigDecimal thueSuat = hoaDon.getThueSuat() != null ? hoaDon.getThueSuat().divide(BigDecimal.valueOf(100), 2, java.math.RoundingMode.HALF_UP) : BigDecimal.ZERO;
+        BigDecimal tienThue = tongTienGoc.multiply(thueSuat);
+        hoaDon.setTienThue(tienThue);
+
+        LocalDate today = LocalDate.now();
+        List<KhuyenMai> khuyenMais = khuyenMaiRepository.findAll().stream()
+                .filter(km -> km.getTrangThai() == com.QuanLyDatBanNhaHang.demo.enums.TrangThaiKhuyenMai.DANG_HOAT_DONG)
+                .filter(km -> !today.isBefore(km.getNgayBatDau()) && !today.isAfter(km.getNgayKetThuc()))
+                .filter(km -> km.getDieuKienToiThieu() == null || tongTienGoc.compareTo(km.getDieuKienToiThieu()) >= 0)
+                .sorted((k1, k2) -> k2.getGiaTriGiam().compareTo(k1.getGiaTriGiam())) // Descending
+                .toList();
+
+        BigDecimal tienGiamGia = BigDecimal.ZERO;
+        if (!khuyenMais.isEmpty()) {
+            KhuyenMai bestKm = khuyenMais.get(0);
+            hoaDon.setKhuyenMai(bestKm);
+            if (bestKm.getGiaTriGiam().compareTo(BigDecimal.valueOf(100)) <= 0) {
+                 tienGiamGia = tongTienGoc.multiply(bestKm.getGiaTriGiam()).divide(BigDecimal.valueOf(100), 2, java.math.RoundingMode.HALF_UP);
+            } else {
+                 tienGiamGia = bestKm.getGiaTriGiam();
+            }
+        } else {
+            hoaDon.setKhuyenMai(null);
+        }
+        hoaDon.setTienGiamGia(tienGiamGia);
+        
+        BigDecimal tongThanhToan = tongTienGoc.add(tienThue).subtract(tienGiamGia);
+        if (tongThanhToan.compareTo(BigDecimal.ZERO) < 0) tongThanhToan = BigDecimal.ZERO;
+        hoaDon.setTongThanhToan(tongThanhToan);
     }
 
     private HoaDonResponseDTO mapToDTO(HoaDon hd) {

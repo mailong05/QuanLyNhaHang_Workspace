@@ -27,6 +27,13 @@ public class PosOperationController {
         return ResponseEntity.ok(ApiResponse.success(posOperationService.layHoaDonTheoBan(banId)));
     }
 
+    @DeleteMapping("/hoa-don/{hoaDonId}/mon/{chiTietId}")
+    public ResponseEntity<ApiResponse<HoaDonResponseDTO>> xoaMon(
+            @PathVariable Long hoaDonId,
+            @PathVariable Long chiTietId) {
+        return ResponseEntity.ok(ApiResponse.success(posOperationService.xoaMon(hoaDonId, chiTietId)));
+    }
+
     @PostMapping("/them-mon")
     public ResponseEntity<ApiResponse<HoaDonResponseDTO>> themMon(@Valid @RequestBody PosThemMonRequestDTO request) {
         return ResponseEntity.ok(ApiResponse.success(posOperationService.themMon(request)));
