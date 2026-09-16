@@ -68,7 +68,7 @@ public class SecurityConfig {
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
                 // Public APIs
-                .requestMatchers("/api/auth/**", "/error", "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html","/api/web/booking", "/api/v1/images/**").permitAll()
+                .requestMatchers("/api/auth/**", "/error", "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html","/api/web/booking/**", "/api/v1/images/**").permitAll()
                 .requestMatchers("/api/monan/**", "/api/banan/**", "/api/khuvuc/**").permitAll()
                 
                 // Quyen han cho STAFF (va ADMIN)
