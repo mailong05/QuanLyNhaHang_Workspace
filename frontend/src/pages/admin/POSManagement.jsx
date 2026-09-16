@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Row, Col, Card, message, Typography, Badge, Button, Table, Modal, Space, Image, InputNumber, Radio, Form, Input, DatePicker, Tabs } from 'antd';
-import { PlusOutlined, DollarOutlined, CoffeeOutlined, CalendarOutlined, RetweetOutlined, MergeCellsOutlined } from '@ant-design/icons';
+import { PlusOutlined, DollarOutlined, CoffeeOutlined, CalendarOutlined, RetweetOutlined, MergeCellsOutlined, DeleteOutlined } from '@ant-design/icons';
 import apiClient from '../../services/apiClient';
 import './POSManagement.css';
 
@@ -149,6 +149,23 @@ const POSManagement = () => {
       message.error('Lỗi khi tải Menu');
     } finally {
       setLoadingMenu(false);
+    }
+  };
+
+  
+  const handleRemoveItem = async (chiTietId) => {
+    if (!currentOrder) return;
+    setLoadingOrder(true);
+    try {
+      const res = await apiClient.delete(`/api/v1/pos/hoa-don/${currentOrder.id}/mon/${chiTietId}`);
+      setCurrentOrder(res);
+      setOrderItems(res.chiTiets || []);
+      message.success('Đã bỏ món khỏi order!');
+    } catch (error) {
+      console.error(error);
+      message.error('Lỗi khi bỏ món!');
+    } finally {
+      setLoadingOrder(false);
     }
   };
 
@@ -378,6 +395,14 @@ const POSManagement = () => {
     { title: 'SL', dataIndex: 'soLuong', key: 'soLuong', width: 60, align: 'center' },
     { title: 'Đơn giá', dataIndex: 'donGia', key: 'donGia', render: (val) => (val || 0).toLocaleString('vi-VN') },
     { title: 'Thành tiền', key: 'thanhTien', render: (_, record) => (record.soLuong * (record.donGia || 0)).toLocaleString('vi-VN') },
+    { 
+      title: '', 
+      key: 'action', 
+      width: 40,
+      render: (_, record) => (
+        <Button type="text" danger icon={<DeleteOutlined />} onClick={() => handleRemoveItem(record.id)} />
+      )
+    }
   ];
 
   const menuColumns = [
@@ -552,10 +577,22 @@ const POSManagement = () => {
                     
                     {/* Khu vực Thanh Toán bám đáy */}
                     <Card style={{ marginTop: 'auto', backgroundColor: '#fafafa', borderColor: '#d9d9d9' }} bodyStyle={{ padding: '16px' }}>
-                      <Row justify="space-between" align="middle" style={{ marginBottom: '16px' }}>
-                        <Text strong style={{ fontSize: '16px' }}>Tổng tiền:</Text>
+                      <Row justify="space-between" align="middle">
+                        <Text type="secondary">Tạm tính:</Text>
+                        <Text strong>{currentOrder?.tongTienGoc ? currentOrder.tongTienGoc.toLocaleString('vi-VN') : 0} đ</Text>
+                      </Row>
+                      <Row justify="space-between" align="middle">
+                        <Text type="secondary">Thuế & Phí:</Text>
+                        <Text strong>{currentOrder?.tienThue ? currentOrder.tienThue.toLocaleString('vi-VN') : 0} đ</Text>
+                      </Row>
+                      <Row justify="space-between" align="middle" style={{ marginBottom: '8px' }}>
+                        <Text type="secondary">Khuyến mãi tự động:</Text>
+                        <Text strong type="success">-{currentOrder?.tienGiamGia ? currentOrder.tienGiamGia.toLocaleString('vi-VN') : 0} đ</Text>
+                      </Row>
+                      <Row justify="space-between" align="middle" style={{ marginBottom: '16px', borderTop: '1px solid #d9d9d9', paddingTop: '8px' }}>
+                        <Text strong style={{ fontSize: '16px' }}>Tổng thanh toán:</Text>
                         <Text strong type="danger" style={{ fontSize: '20px' }}>
-                          {calculateTotal().toLocaleString('vi-VN')} đ
+                          {currentOrder?.tongThanhToan ? currentOrder.tongThanhToan.toLocaleString('vi-VN') : 0} đ
                         </Text>
                       </Row>
                       <Space direction="vertical" style={{ width: '100%' }}>
@@ -642,7 +679,7 @@ const POSManagement = () => {
             type="primary" 
             loading={loadingCheckout} 
             onClick={handleCheckout}
-            disabled={checkoutMethod === 'TIEN_MAT' && amountGiven < calculateTotal()}
+            disabled={checkoutMethod === 'TIEN_MAT' && amountGiven < (currentOrder?.tongThanhToan || 0)}
             style={{ backgroundColor: '#52c41a', borderColor: '#52c41a' }}
           >
             Xác nhận thanh toán
@@ -653,7 +690,7 @@ const POSManagement = () => {
           <Text style={{ fontSize: '18px' }}>Tổng tiền cần thanh toán</Text>
           <br/>
           <Text strong type="danger" style={{ fontSize: '32px' }}>
-            {calculateTotal().toLocaleString('vi-VN')} đ
+            {currentOrder?.tongThanhToan ? currentOrder.tongThanhToan.toLocaleString('vi-VN') : 0} đ
           </Text>
         </div>
 
@@ -690,7 +727,7 @@ const POSManagement = () => {
               <Row justify="space-between" align="middle">
                 <Text strong style={{ fontSize: '16px' }}>Tiền thừa trả khách:</Text>
                 <Text strong type="danger" style={{ fontSize: '20px' }}>
-                  {Math.max(0, amountGiven - calculateTotal()).toLocaleString('vi-VN')} đ
+                  {Math.max(0, amountGiven - (currentOrder?.tongThanhToan || 0)).toLocaleString('vi-VN')} đ
                 </Text>
               </Row>
             </div>

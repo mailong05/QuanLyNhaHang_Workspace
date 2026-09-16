@@ -9,6 +9,6 @@ import java.util.Map;
 public interface ReportService {
     DashboardOverviewDTO getDashboardOverview();
     List<RecentTransactionDTO> getRecentTransactions();
-    List<TopItemProjection> getTopItems();
-    List<Map<String, Object>> getRevenueChart();
+    List<TopItemProjection> getTopItems(String startDate, String endDate);
+    List<Map<String, Object>> getRevenueChart(String startDate, String endDate);
 }

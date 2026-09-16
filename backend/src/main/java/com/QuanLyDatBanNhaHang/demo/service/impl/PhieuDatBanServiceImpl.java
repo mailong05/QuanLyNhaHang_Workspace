@@ -5,19 +5,18 @@ import com.QuanLyDatBanNhaHang.demo.dto.request.PhieuDatBanCreateRequestDTO;
 import com.QuanLyDatBanNhaHang.demo.dto.request.PhieuDatBanUpdateRequestDTO;
 import com.QuanLyDatBanNhaHang.demo.dto.response.ChiTietPhieuDatBanResponseDTO;
 import com.QuanLyDatBanNhaHang.demo.dto.response.PhieuDatBanResponseDTO;
-import com.QuanLyDatBanNhaHang.demo.entity.BanAn;
-import com.QuanLyDatBanNhaHang.demo.entity.ChiTietPhieuDatBan;
-import com.QuanLyDatBanNhaHang.demo.entity.KhachHang;
-import com.QuanLyDatBanNhaHang.demo.entity.NhanVien;
-import com.QuanLyDatBanNhaHang.demo.entity.PhieuDatBan;
+import com.QuanLyDatBanNhaHang.demo.entity.*;
 import com.QuanLyDatBanNhaHang.demo.enums.TrangThaiPhieuDatBan;
+import com.QuanLyDatBanNhaHang.demo.enums.TrangThaiThanhToanHoaDon;
 import com.QuanLyDatBanNhaHang.demo.exception.DuplicateResourceException;
 import com.QuanLyDatBanNhaHang.demo.exception.ResourceNotFoundException;
 import com.QuanLyDatBanNhaHang.demo.repository.BanAnRepository;
 import com.QuanLyDatBanNhaHang.demo.repository.KhachHangRepository;
 import com.QuanLyDatBanNhaHang.demo.repository.NhanVienRepository;
 import com.QuanLyDatBanNhaHang.demo.repository.PhieuDatBanRepository;
+import com.QuanLyDatBanNhaHang.demo.repository.ThueRepository;
 import com.QuanLyDatBanNhaHang.demo.service.PhieuDatBanService;
+import com.QuanLyDatBanNhaHang.demo.repository.HoaDonRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -38,6 +37,8 @@ public class PhieuDatBanServiceImpl implements PhieuDatBanService {
     private final KhachHangRepository khachHangRepository;
     private final NhanVienRepository nhanVienRepository;
     private final BanAnRepository banAnRepository;
+    private final HoaDonRepository hoaDonRepository;
+    private final ThueRepository thueRepository;
 
     @Override
     public Page<PhieuDatBanResponseDTO> getAllPhieuDatBan(Pageable pageable) {
@@ -107,7 +108,9 @@ public class PhieuDatBanServiceImpl implements PhieuDatBanService {
             }
         }
 
+        
         return convertToResponseDTO(phieuDatBanRepository.save(pdb));
+
     }
 
     @Override
@@ -197,7 +200,37 @@ public class PhieuDatBanServiceImpl implements PhieuDatBanService {
              }
         }
 
+        
+        if (requestDTO.getTrangThai() == TrangThaiPhieuDatBan.DANG_PHUC_VU) {
+            boolean hasOpenInvoice = hoaDonRepository.findAll().stream()
+                    .anyMatch(hd -> hd.getPhieuDatBan() != null && hd.getPhieuDatBan().getId().equals(pdb.getId()) && hd.getTrangThaiThanhToan() == com.QuanLyDatBanNhaHang.demo.enums.TrangThaiThanhToanHoaDon.CHUA_THANH_TOAN);
+            if (!hasOpenInvoice) {
+                NhanVien nv = pdb.getNhanVien();
+                if (nv == null) {
+                    nv = nhanVienRepository.findAll().stream().findFirst().orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy nhân viên"));
+                }
+                Thue thueMacDinh = thueRepository.findAll().stream().findFirst().orElseThrow(() -> new ResourceNotFoundException("Chưa cấu hình Thuế trong hệ thống"));
+                HoaDon newInvoice = HoaDon.builder()
+                        .maHD("HD_" + System.currentTimeMillis())
+                        .phieuDatBan(pdb)
+                        .nhanVien(nv)
+                        .thue(thueMacDinh)
+                        .ngayTao(java.time.LocalDateTime.now())
+                        .gioVao(java.time.LocalTime.now())
+                        .trangThaiThanhToan(com.QuanLyDatBanNhaHang.demo.enums.TrangThaiThanhToanHoaDon.CHUA_THANH_TOAN)
+                        .thueSuat(thueMacDinh.getThueSuat())
+                        .tienThue(java.math.BigDecimal.ZERO)
+                        .tienPhiDV(java.math.BigDecimal.ZERO)
+                        .tongTienGoc(java.math.BigDecimal.ZERO)
+                        .tienGiamGia(java.math.BigDecimal.ZERO)
+                        .tongThanhToan(java.math.BigDecimal.ZERO)
+                        .tyLePhiDV(java.math.BigDecimal.ZERO)
+                        .build();
+                hoaDonRepository.save(newInvoice);
+            }
+        }
         return convertToResponseDTO(phieuDatBanRepository.save(pdb));
+
     }
 
     @Override

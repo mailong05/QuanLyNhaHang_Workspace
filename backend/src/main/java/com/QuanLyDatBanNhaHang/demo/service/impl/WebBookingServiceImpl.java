@@ -38,6 +38,33 @@ public class WebBookingServiceImpl implements WebBookingService {
 
     @Override
     @Transactional
+
+    public java.util.List<java.util.Map<String, Object>> getAvailableTables(LocalDateTime thoiGianDen) {
+        LocalDateTime start = thoiGianDen.minusHours(2);
+        LocalDateTime end = thoiGianDen.plusHours(2);
+
+        List<BanAn> allTables = banAnRepository.findAll();
+        List<java.util.Map<String, Object>> result = new java.util.ArrayList<>();
+
+        for (BanAn banAn : allTables) {
+            boolean isAvailable = false;
+
+            List<ChiTietPhieuDatBan> conflicts = chiTietPhieuDatBanRepository.findConflictingBookings(banAn.getMaBan(), start, end, null);
+            isAvailable = conflicts.isEmpty();
+
+
+            java.util.Map<String, Object> map = new java.util.HashMap<>();
+            map.put("id", banAn.getId());
+            map.put("maBan", banAn.getMaBan());
+            map.put("soGhe", banAn.getSoGhe());
+            map.put("khuVuc", banAn.getKhuVuc() != null ? banAn.getKhuVuc().getTenKhuVuc() : "");
+            map.put("isAvailable", isAvailable);
+            result.add(map);
+        }
+        return result;
+    }
+
+    @Override
     public void createWebBooking(WebBookingRequestDTO request) {
         // 1. Tìm hoặc tạo Khách Hàng
         KhachHang khachHang = khachHangRepository.findAll().stream()

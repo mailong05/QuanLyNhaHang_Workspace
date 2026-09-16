@@ -21,9 +21,55 @@ const Home = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
+
   // State cho thanh toán QR
   const [isQrModalVisible, setIsQrModalVisible] = useState(false);
   const [currentDepositAmount, setCurrentDepositAmount] = useState(0);
+
+  // State cho chọn bàn
+  const [isTableMapVisible, setIsTableMapVisible] = useState(false);
+  const [availableTables, setAvailableTables] = useState([]);
+  const [loadingTables, setLoadingTables] = useState(false);
+  const [selectedTables, setSelectedTables] = useState([]);
+
+  const handleOpenTableMap = async () => {
+    try {
+      const values = await form.validateFields(['ngayDen', 'gioDen', 'soLuongNguoi']);
+      if (!values.ngayDen || !values.gioDen || !values.soLuongNguoi) return;
+
+      const thoiGianDen = values.ngayDen.format('YYYY-MM-DD') + 'T' + values.gioDen.format('HH:mm:ss');
+      const soNguoi = values.soLuongNguoi;
+      
+      setLoadingTables(true);
+      setIsTableMapVisible(true);
+      
+      const res = await axios.get('http://localhost:8080/api/web/booking/available-tables', {
+        params: { thoiGianDen }
+      });
+      // Lọc các bàn có số ghế >= số lượng người khách nhập
+      const filteredTables = res.data.data.filter(t => t.soGhe >= soNguoi);
+      setAvailableTables(filteredTables);
+    } catch (error) {
+      if (error.name === 'ValidationError' || error.errorFields) {
+        message.warning('Vui lòng chọn Ngày đến, Giờ đến và Số người trước khi chọn bàn!');
+      } else {
+        message.error('Lỗi khi tải danh sách bàn!');
+      }
+    } finally {
+      setLoadingTables(false);
+    }
+  };
+
+  const handleToggleTable = (table) => {
+    if (!table.isAvailable) return;
+    
+    if (selectedTables.includes(table.id)) {
+      setSelectedTables(selectedTables.filter(id => id !== table.id));
+    } else {
+      setSelectedTables([...selectedTables, table.id]);
+    }
+  };
+
 
   const handleBooking = async (values, tienDatCoc) => {
     setLoading(true);
@@ -35,13 +81,15 @@ const Home = () => {
         thoiGianDen: values.ngayDen.format('YYYY-MM-DD') + 'T' + values.gioDen.format('HH:mm:ss'),
         soLuongNguoi: values.soLuongNguoi,
         ghiChu: values.ghiChu || '',
-        tienDatCoc: tienDatCoc
+        tienDatCoc: tienDatCoc,
+        danhSachBanId: selectedTables
       };
       await axios.post('http://localhost:8080/api/web/booking', payload);
       message.success(tienDatCoc > 0 ? 'Đặt bàn và ghi nhận cọc thành công!' : 'Đặt bàn thành công! Hệ thống đang xử lý và chờ xác nhận.');
       form.resetFields();
       setIsQrModalVisible(false);
       setCurrentDepositAmount(0);
+      setSelectedTables([]); // Reset danh sách bàn đã chọn
     } catch (error) {
       message.error(error.response?.data?.message || 'Lỗi khi đặt bàn, vui lòng thử lại!');
       console.error(error);
@@ -184,7 +232,18 @@ const Home = () => {
                     />
                   </Form.Item>
 
-                  <Form.Item name="ghiChu" label="Ghi chú thêm (Không bắt buộc)">
+                              <Form.Item label="Chọn bàn (Tùy chọn)">
+              <Button type="default" block onClick={handleOpenTableMap}>
+                Mở sơ đồ chọn bàn
+              </Button>
+              {selectedTables.length > 0 && (
+                <div style={{ marginTop: '8px', color: '#1890ff', fontWeight: 'bold' }}>
+                  Đã chọn {selectedTables.length} bàn
+                </div>
+              )}
+            </Form.Item>
+
+            <Form.Item name="ghiChu" label="Ghi chú thêm (Không bắt buộc)">
                     <Input.TextArea rows={4} placeholder="Ví dụ: Ghế trẻ em, ăn chay, kỷ niệm ngày cưới..." />
                   </Form.Item>
 
@@ -238,8 +297,77 @@ const Home = () => {
           </Button>
         </div>
       </Modal>
+      {/* Modal Chọn Bàn */}
+      <Modal
+        title="Sơ đồ chọn bàn"
+        open={isTableMapVisible}
+        onCancel={() => setIsTableMapVisible(false)}
+        footer={[
+          <Button key="ok" type="primary" onClick={() => setIsTableMapVisible(false)}>
+            Xác nhận ({selectedTables.length} bàn)
+          </Button>
+        ]}
+        width={800}
+        centered
+      >
+        <div style={{ textAlign: 'center', marginBottom: 20 }}>
+          <div style={{ display: 'inline-block', width: 20, height: 20, background: '#f5f5f5', border: '1px solid #d9d9d9', marginRight: 8, verticalAlign: 'middle' }}></div> <Text>Trống</Text>
+          <div style={{ display: 'inline-block', width: 20, height: 20, background: '#1890ff', marginLeft: 16, marginRight: 8, verticalAlign: 'middle' }}></div> <Text>Đang chọn</Text>
+          <div style={{ display: 'inline-block', width: 20, height: 20, background: '#ff4d4f', marginLeft: 16, marginRight: 8, verticalAlign: 'middle' }}></div> <Text>Đã đặt</Text>
+        </div>
+
+        {loadingTables ? (
+          <div style={{ textAlign: 'center', padding: '40px 0' }}>Đang tải danh sách bàn...</div>
+        ) : (
+          <div style={{ maxHeight: '400px', overflowY: 'auto', padding: '10px' }}>
+            {Array.from(new Set(availableTables.map(t => t.khuVuc))).map(kv => (
+              <div key={kv} style={{ marginBottom: 24 }}>
+                <Title level={5} style={{ borderBottom: '1px solid #f0f0f0', paddingBottom: 8 }}>{kv || 'Khu vực chung'}</Title>
+                <Row gutter={[16, 16]}>
+                  {availableTables.filter(t => t.khuVuc === kv).map(table => {
+                    const isSelected = selectedTables.includes(table.id);
+                    let bgColor = '#f5f5f5'; // Trống
+                    let color = 'rgba(0,0,0,0.85)';
+                    if (!table.isAvailable) {
+                      bgColor = '#ff4d4f'; // Đã đặt
+                      color = 'white';
+                    } else if (isSelected) {
+                      bgColor = '#1890ff'; // Đang chọn
+                      color = 'white';
+                    }
+
+                    return (
+                      <Col xs={12} sm={8} md={6} key={table.id}>
+                        <div 
+                          onClick={() => handleToggleTable(table)}
+                          style={{
+                            padding: '16px 8px',
+                            background: bgColor,
+                            color: color,
+                            textAlign: 'center',
+                            borderRadius: '8px',
+                            cursor: table.isAvailable ? 'pointer' : 'not-allowed',
+                            border: isSelected ? '2px solid #0050b3' : '1px solid #d9d9d9',
+                            transition: 'all 0.3s',
+                            opacity: table.isAvailable ? 1 : 0.6
+                          }}
+                        >
+                          <div style={{ fontWeight: 'bold', fontSize: '16px' }}>{table.maBan}</div>
+                          <div style={{ fontSize: '12px' }}>{table.soGhe} ghế</div>
+                        </div>
+                      </Col>
+                    );
+                  })}
+                </Row>
+              </div>
+            ))}
+            {availableTables.length === 0 && <div style={{ textAlign: 'center' }}>Không tìm thấy bàn trống nào.</div>}
+          </div>
+        )}
+      </Modal>
     </div>
   );
 };
+
 
 export default Home;

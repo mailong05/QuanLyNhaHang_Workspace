@@ -36,13 +36,17 @@ public class ReportController {
 
     @GetMapping("/top-items")
     @PreAuthorize("hasAnyRole('ADMIN', 'NHAN_VIEN')")
-    public ResponseEntity<ApiResponse<List<TopItemProjection>>> getTopItems() {
-        return ResponseEntity.ok(ApiResponse.success(reportService.getTopItems()));
+    public ResponseEntity<ApiResponse<List<TopItemProjection>>> getTopItems(
+            @org.springframework.web.bind.annotation.RequestParam(required = false) String startDate,
+            @org.springframework.web.bind.annotation.RequestParam(required = false) String endDate) {
+        return ResponseEntity.ok(ApiResponse.success(reportService.getTopItems(startDate, endDate)));
     }
 
     @GetMapping("/revenue-chart")
     @PreAuthorize("hasAnyRole('ADMIN', 'NHAN_VIEN')")
-    public ResponseEntity<ApiResponse<List<Map<String, Object>>>> getRevenueChart() {
-        return ResponseEntity.ok(ApiResponse.success(reportService.getRevenueChart()));
+    public ResponseEntity<ApiResponse<List<Map<String, Object>>>> getRevenueChart(
+            @org.springframework.web.bind.annotation.RequestParam(required = false) String startDate,
+            @org.springframework.web.bind.annotation.RequestParam(required = false) String endDate) {
+        return ResponseEntity.ok(ApiResponse.success(reportService.getRevenueChart(startDate, endDate)));
     }
 }
