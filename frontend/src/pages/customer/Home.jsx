@@ -153,7 +153,7 @@ const Home = () => {
         <div style={{ padding: '60px 50px', background: '#f5f5f5' }}>
           <div style={{ textAlign: 'center', marginBottom: '40px' }}>
             <Title level={2}>Thực Đơn Nổi Bật</Title>
-            <Text type="secondary">Những món ăn làm nên tên tuổi của Grand Restaurant</Text>
+            <Text type="secondary">Những món ăn làm nên tên tuổi của Ha Long Restaurant</Text>
           </div>
           <Row gutter={[24, 24]}>
             {mockMenu.map(item => (

@@ -29,5 +29,6 @@ public class KhachHangUpdateRequestDTO {
 
     private Integer diemTichLuy;
 
-    private String username; // Optional
+    private String username;
+    private String password; // Optional
 }

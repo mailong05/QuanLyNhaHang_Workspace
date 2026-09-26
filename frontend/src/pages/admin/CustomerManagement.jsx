@@ -62,7 +62,8 @@ const CustomerManagement = () => {
       sdt: record.sdt,
       email: record.email,
       loaiThanhVien: record.hangKhachHang, // Giữ nguyên hạng cũ hoặc map cho đúng Enum của backend
-      diemTichLuy: record.diemTichLuy
+      diemTichLuy: record.diemTichLuy,
+      username: record.username || record.maKH
     });
     setIsModalVisible(true);
   };
@@ -96,6 +97,7 @@ const CustomerManagement = () => {
     { title: 'Họ tên', dataIndex: 'hoTen', key: 'hoTen' },
     { title: 'Số điện thoại', dataIndex: 'sdt', key: 'sdt' },
     { title: 'Email', dataIndex: 'email', key: 'email' },
+    { title: 'Tên đăng nhập', dataIndex: 'username', key: 'username', render: val => val ? val : <span style={{color: '#aaa'}}>Không có</span> },
     { title: 'Điểm tích lũy', dataIndex: 'diemTichLuy', key: 'diemTichLuy', render: (val) => <Tag color="gold">{val} điểm</Tag> },
     { title: 'Hạng', dataIndex: 'hangKhachHang', key: 'hangKhachHang', render: (val) => <Tag color="blue">{val}</Tag> },
     {
