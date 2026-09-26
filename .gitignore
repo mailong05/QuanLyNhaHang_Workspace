@@ -1,3 +1,5 @@
 node_modules/
 target/
 .idea/
+# Local profiles
+application-local.properties
