@@ -30,5 +30,6 @@ public class KhachHangCreateRequestDTO {
     @NotNull(message = "Loại thành viên không được để trống")
     private LoaiThanhVienKhachHang loaiThanhVien;
 
-    private String username; // Optional (cho luồng tự đặt web cần map tk, hoặc guest để null)
+    private String username;
+    private String password; // Optional (cho luồng tự đặt web cần map tk, hoặc guest để null)
 }

@@ -14,6 +14,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import com.QuanLyDatBanNhaHang.demo.enums.QuyenHanTaiKhoan;
 
 @Service
 @RequiredArgsConstructor
@@ -21,6 +23,7 @@ public class KhachHangServiceImpl implements KhachHangService {
 
     private final KhachHangRepository khachHangRepository;
     private final TaiKhoanRepository taiKhoanRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     public Page<KhachHangResponseDTO> getAllKhachHang(Pageable pageable) {
@@ -44,8 +47,17 @@ public class KhachHangServiceImpl implements KhachHangService {
 
         TaiKhoan tk = null;
         if (requestDTO.getUsername() != null && !requestDTO.getUsername().isBlank()) {
-            tk = taiKhoanRepository.findByUsernameIgnoreCase(requestDTO.getUsername())
-                    .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy Tài khoản: " + requestDTO.getUsername()));
+            if (taiKhoanRepository.findByUsernameIgnoreCase(requestDTO.getUsername()).isPresent()) {
+                throw new DuplicateResourceException("Tên đăng nhập đã tồn tại trong hệ thống");
+            }
+            if (requestDTO.getPassword() == null || requestDTO.getPassword().isBlank()) {
+                throw new IllegalArgumentException("Mật khẩu không được để trống khi tạo tài khoản");
+            }
+            tk = new TaiKhoan();
+            tk.setUsername(requestDTO.getUsername());
+            tk.setPassword(passwordEncoder.encode(requestDTO.getPassword()));
+            tk.setQuyenHan(QuyenHanTaiKhoan.KHACH_HANG);
+            tk = taiKhoanRepository.save(tk);
         }
 
         KhachHang kh = KhachHang.builder()
@@ -66,10 +78,23 @@ public class KhachHangServiceImpl implements KhachHangService {
         KhachHang kh = khachHangRepository.findByMaKHIgnoreCaseWithAuth(maKH)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy Khách hàng với mã: " + maKH));
 
-        TaiKhoan tk = null;
-        if (requestDTO.getUsername() != null && !requestDTO.getUsername().isBlank()) {
-            tk = taiKhoanRepository.findByUsernameIgnoreCase(requestDTO.getUsername())
-                    .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy Tài khoản: " + requestDTO.getUsername()));
+        TaiKhoan tk = kh.getTaiKhoan();
+        if (requestDTO.getPassword() != null && !requestDTO.getPassword().isBlank()) {
+            if (tk != null) {
+                tk.setPassword(passwordEncoder.encode(requestDTO.getPassword()));
+                taiKhoanRepository.save(tk);
+            } else {
+                if (requestDTO.getUsername() != null && !requestDTO.getUsername().isBlank()) {
+                    if (taiKhoanRepository.findByUsernameIgnoreCase(requestDTO.getUsername()).isPresent()) {
+                        throw new DuplicateResourceException("Tên đăng nhập đã tồn tại trong hệ thống");
+                    }
+                    tk = new TaiKhoan();
+                    tk.setUsername(requestDTO.getUsername());
+                    tk.setPassword(passwordEncoder.encode(requestDTO.getPassword()));
+                    tk.setQuyenHan(QuyenHanTaiKhoan.KHACH_HANG);
+                    tk = taiKhoanRepository.save(tk);
+                }
+            }
         }
 
         kh.setHoTen(requestDTO.getHoTen());

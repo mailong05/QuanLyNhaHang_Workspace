@@ -48,7 +48,8 @@ const EmployeeManagement = () => {
       chucVu: record.chucVu,
       trangThai: record.trangThai,
       luongCoBan: record.luongCoBan,
-      ngayVaoLam: record.ngayVaoLam ? dayjs(record.ngayVaoLam) : null
+      ngayVaoLam: record.ngayVaoLam ? dayjs(record.ngayVaoLam) : null,
+      username: record.username || record.maNV
     });
     setIsModalVisible(true);
   };
@@ -236,6 +237,18 @@ const EmployeeManagement = () => {
           <Form.Item name="email" label="Email (Không bắt buộc)">
             <Input type="email" placeholder="example@gmail.com" />
           </Form.Item>
+
+          <div style={{ borderTop: '1px solid #f0f0f0', margin: '20px 0', paddingTop: '10px' }}>
+            <h4 style={{ marginBottom: 16 }}>Thông tin cấp quyền đăng nhập</h4>
+            <div style={{ display: 'flex', gap: '16px' }}>
+              <Form.Item name="username" label="Tên đăng nhập" rules={[{ required: true, message: 'Bắt buộc' }]} style={{ flex: 1 }}>
+                <Input disabled={editingEmployee !== null && !!editingEmployee.username} placeholder="Ví dụ: NV0123" />
+              </Form.Item>
+              <Form.Item name="password" label="Mật khẩu" rules={[{ required: !editingEmployee, message: 'Bắt buộc khi tạo mới' }]} style={{ flex: 1 }}>
+                <Input.Password placeholder={editingEmployee ? "Bỏ trống nếu không đổi" : "Nhập mật khẩu"} />
+              </Form.Item>
+            </div>
+          </div>
         </Form>
       </Modal>
     </div>

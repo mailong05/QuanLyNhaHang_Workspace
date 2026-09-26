@@ -42,5 +42,6 @@ public class NhanVienCreateRequestDTO {
     @NotNull(message = "Trạng thái không được để trống")
     private TrangThaiNhanVien trangThai;
 
-    private String username; // Optional
+    private String username;
+    private String password; // Optional
 }
