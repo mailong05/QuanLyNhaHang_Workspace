@@ -89,4 +89,4 @@ npm run dev
 
 ## 👨‍💻 Tác giả (Author)
 * **Dự án:** Quản Lý Đặt Bàn Nhà Hàng (Ver Web)
-* Bản quyền thuộc về Đội ngũ phát triển.
+* Bản quyền thuộc về Vân Long.
