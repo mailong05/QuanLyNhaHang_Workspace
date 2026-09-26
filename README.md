@@ -1,3 +1,4 @@
+@ -0,0 +1,91 @@
 # 🍽️ Restaurant Management System (Hệ Thống Quản Lý Đặt Bàn & Nhà Hàng)
 
 ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.0-brightgreen.svg?logo=springboot)
@@ -88,4 +89,4 @@ npm run dev
 
 ## 👨‍💻 Tác giả (Author)
 * **Dự án:** Quản Lý Đặt Bàn Nhà Hàng (Ver Web)
-* Bản quyền thuộc về Đội ngũ phát triển.
+* Bản quyền thuộc về Vân Long.
