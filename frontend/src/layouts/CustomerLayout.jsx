@@ -72,7 +72,7 @@ const CustomerLayout = () => {
       </Content>
 
       <Footer style={{ textAlign: 'center', background: '#001529', color: 'white', padding: '24px 50px' }}>
-        Grand Restaurant ©{new Date().getFullYear()} Created by Tech Lead
+       Ha Long Restaurant {new Date().getFullYear()} Created by Van Long
       </Footer>
     </Layout>
   );

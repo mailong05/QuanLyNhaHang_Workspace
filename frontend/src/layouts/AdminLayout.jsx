@@ -217,7 +217,7 @@ const AdminLayout = () => {
         <div style={{ padding: '16px 0', fontSize: '16px' }}>
           <p style={{ marginBottom: '12px' }}><strong>Họ và tên:</strong> Admin</p>
           <p style={{ marginBottom: '12px' }}><strong>Số điện thoại:</strong> 0123456789</p>
-          <p style={{ marginBottom: '12px' }}><strong>Email:</strong> admin@grandrestaurant.com</p>
+          <p style={{ marginBottom: '12px' }}><strong>Email:</strong> admin@halongrestaurant.com</p>
           <p style={{ marginBottom: '0' }}><strong>Vai trò:</strong> Quản trị viên</p>
         </div>
       </Modal>
@@ -239,7 +239,7 @@ const AdminLayout = () => {
           <Form.Item label="Số điện thoại" initialValue="0123456789">
             <Input />
           </Form.Item>
-          <Form.Item label="Email" initialValue="admin@grandrestaurant.com">
+          <Form.Item label="Email" initialValue="admin@halongrestaurant.com">
             <Input />
           </Form.Item>
         </Form>

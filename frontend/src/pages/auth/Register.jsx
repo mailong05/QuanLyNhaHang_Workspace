@@ -37,7 +37,7 @@ const Register = () => {
       >
         <div style={{ textAlign: 'center', marginBottom: '24px' }}>
           <Title level={2} style={{ margin: 0 }}>Đăng Ký Tài Khoản</Title>
-          <Text type="secondary">Trở thành thành viên của Grand Restaurant</Text>
+          <Text type="secondary">Trở thành thành viên của Ha Long Restaurant</Text>
         </div>
 
         <Form
