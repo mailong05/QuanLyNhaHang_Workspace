@@ -181,7 +181,7 @@ const EmployeeManagement = () => {
             <Form.Item
               name="sdt"
               label="Số điện thoại"
-              rules={[{ required: true, message: 'Bắt buộc' }]}
+              rules={[{ required: true, message: 'Bắt buộc' }, { pattern: /^(0[3|5|7|8|9])+([0-9]{8})$/, message: 'Số điện thoại không hợp lệ (VD: 0987654321)' }]}
               style={{ flex: 1 }}
             >
               <Input placeholder="09xx..." />
@@ -241,10 +241,10 @@ const EmployeeManagement = () => {
           <div style={{ borderTop: '1px solid #f0f0f0', margin: '20px 0', paddingTop: '10px' }}>
             <h4 style={{ marginBottom: 16 }}>Thông tin cấp quyền đăng nhập</h4>
             <div style={{ display: 'flex', gap: '16px' }}>
-              <Form.Item name="username" label="Tên đăng nhập" rules={[{ required: true, message: 'Bắt buộc' }]} style={{ flex: 1 }}>
+              <Form.Item name="username" label="Tên đăng nhập" rules={[{ required: true, message: 'Bắt buộc' }, { pattern: /^[a-zA-Z0-9_]{4,20}$/, message: 'Username từ 4-20 ký tự, không ký tự đặc biệt' }]} style={{ flex: 1 }}>
                 <Input disabled={editingEmployee !== null && !!editingEmployee.username} placeholder="Ví dụ: NV0123" />
               </Form.Item>
-              <Form.Item name="password" label="Mật khẩu" rules={[{ required: !editingEmployee, message: 'Bắt buộc khi tạo mới' }]} style={{ flex: 1 }}>
+              <Form.Item name="password" label="Mật khẩu" rules={[{ required: !editingEmployee, message: 'Bắt buộc khi tạo mới' }, { min: 6, message: 'Mật khẩu ít nhất 6 ký tự' }]} style={{ flex: 1 }}>
                 <Input.Password placeholder={editingEmployee ? "Bỏ trống nếu không đổi" : "Nhập mật khẩu"} />
               </Form.Item>
             </div>
