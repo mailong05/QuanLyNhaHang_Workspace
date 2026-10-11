@@ -11,7 +11,7 @@ services:
       MSSQL_SA_PASSWORD: "QuanLyNhaHang@2026"
       MSSQL_PID: "Developer"
     ports:
-      - "1433:1433"
+      - "14333:1433"
     volumes:
       - mssql_data:/var/opt/mssql
     networks:
@@ -90,7 +90,7 @@ services:
       - backend
     ports:
       - "80:80"
-      - "5173:80"
+      - "3000:80"
     networks:
       - restaurant-network
 
