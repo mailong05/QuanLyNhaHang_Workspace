@@ -1,0 +1,9 @@
+target/
+.mvn/
+jdk17/
+.idea/
+*.iml
+.git
+.gitignore
+uploads/
+*.log

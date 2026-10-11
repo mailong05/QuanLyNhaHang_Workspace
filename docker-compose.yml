@@ -1,0 +1,106 @@
+services:
+  # ==========================================
+  # 🗄️ DATABASE: Microsoft SQL Server 2022
+  # ==========================================
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: restaurant-sqlserver
+    restart: always
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "QuanLyNhaHang@2026"
+      MSSQL_PID: "Developer"
+    ports:
+      - "1433:1433"
+    volumes:
+      - mssql_data:/var/opt/mssql
+    networks:
+      - restaurant-network
+    healthcheck:
+      test: >
+        bash -c '/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "QuanLyNhaHang@2026" -C -Q "SELECT 1" ||
+        /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "QuanLyNhaHang@2026" -Q "SELECT 1" ||
+        exit 1'
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
+
+  # ==========================================
+  # ⚙️ DB INITIALIZER: Auto-create Database
+  # ==========================================
+  db-init:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: restaurant-db-init
+    restart: "no"
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    volumes:
+      - ./docker/init.sql:/init.sql
+    networks:
+      - restaurant-network
+    entrypoint: >
+      bash -c '
+      echo ">>> Initializing database QuanLyDatBanNhaHang..."
+      /opt/mssql-tools18/bin/sqlcmd -S sqlserver -U sa -P "QuanLyNhaHang@2026" -C -i /init.sql ||
+      /opt/mssql-tools/bin/sqlcmd -S sqlserver -U sa -P "QuanLyNhaHang@2026" -i /init.sql
+      echo ">>> Database initialization finished!"
+      '
+
+  # ==========================================
+  # ☕ BACKEND: Spring Boot 3 API Service
+  # ==========================================
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: restaurant-backend
+    restart: always
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+      db-init:
+        condition: service_completed_successfully
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      DB_URL: jdbc:sqlserver://sqlserver:1433;databaseName=QuanLyDatBanNhaHang;encrypt=true;trustServerCertificate=true
+      DB_USERNAME: sa
+      DB_PASSWORD: "QuanLyNhaHang@2026"
+      HIBERNATE_DDL_AUTO: update
+      JWT_SECRET: DUMMY_SECRET_KEY_MUST_BE_LONG_ENOUGH_FOR_HMAC_SHA_256_AT_LEAST_32_BYTES_123456789
+      JWT_EXPIRATION_MS: 86400000
+    volumes:
+      - uploads_data:/app/uploads/images
+    networks:
+      - restaurant-network
+
+  # ==========================================
+  # 🌐 FRONTEND: React 19 + Vite (Nginx SPA)
+  # ==========================================
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: restaurant-frontend
+    restart: always
+    depends_on:
+      - backend
+    ports:
+      - "80:80"
+      - "5173:80"
+    networks:
+      - restaurant-network
+
+volumes:
+  mssql_data:
+    name: restaurant_mssql_data
+  uploads_data:
+    name: restaurant_uploads_data
+
+networks:
+  restaurant-network:
+    name: restaurant_network
+    driver: bridge

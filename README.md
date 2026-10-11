@@ -1,10 +1,10 @@
-@ -0,0 +1,91 @@
 # 🍽️ Restaurant Management System (Hệ Thống Quản Lý Đặt Bàn & Nhà Hàng)
 
-![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.0-brightgreen.svg?logo=springboot)
+![Docker](https://img.shields.io/badge/Docker-Enabled-2496ED.svg?logo=docker&logoColor=white)
+![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.2.5-brightgreen.svg?logo=springboot)
 ![React](https://img.shields.io/badge/React-19.0-blue.svg?logo=react)
 ![Ant Design](https://img.shields.io/badge/Ant_Design-6.4-blue.svg?logo=antdesign)
-![MSSQL](https://img.shields.io/badge/SQL_Server-Latest-red.svg?logo=microsoftsqlserver)
+![MSSQL](https://img.shields.io/badge/SQL_Server-2022-red.svg?logo=microsoftsqlserver)
 
 Một hệ thống phần mềm toàn diện dành cho doanh nghiệp F&B, cung cấp giải pháp chuyển đổi số từ khâu **đặt bàn trực tuyến của khách hàng** (B2C) đến khâu **vận hành, thu ngân POS và quản trị nhân sự** (B2B) của nhà hàng.
 
@@ -61,23 +61,47 @@ Hệ thống áp dụng chuẩn bảo mật RBAC (Role-Based Access Control) th�
 
 ## 🚀 Hướng Dẫn Cài Đặt (Installation)
 
-### 1. Yêu cầu môi trường (Prerequisites)
+### Cách 1: Triển khai siêu tốc bằng Docker (Khuyên dùng 🌟)
+Chỉ cần cài đặt [Docker Desktop](https://www.docker.com/) và chạy duy nhất 1 câu lệnh từ thư mục gốc của dự án:
+
+```bash
+docker compose up -d --build
+```
+Hệ thống sẽ tự động:
+1. Kéo image và khởi chạy **Microsoft SQL Server 2022** (Port `1433`).
+2. Tự động kiểm tra và khởi tạo cơ sở dữ liệu `QuanLyDatBanNhaHang`.
+3. Build image và khởi chạy **Spring Boot Backend** (Port `8080`).
+4. Build image và khởi chạy **React Frontend** qua web server **Nginx** (Port `80` hoặc `5173`).
+
+* **Frontend Web:** `http://localhost` hoặc `http://localhost:5173`
+* **Backend API & Swagger:** `http://localhost:8080/swagger-ui.html`
+
+*Để dừng toàn bộ hệ thống:*
+```bash
+docker compose down
+```
+
+---
+
+### Cách 2: Chạy thủ công trên máy cục bộ (Local Development)
+
+#### 1. Yêu cầu môi trường (Prerequisites)
 * Java JDK 17+
 * Node.js 18+ & npm
-* Microsoft SQL Server
+* Microsoft SQL Server 2019/2022
 * Maven 3.8+
 
-### 2. Cài đặt Backend
+#### 2. Cài đặt Backend
 ```bash
 cd backend
-# Cấu hình chuỗi kết nối Database tại: src/main/resources/application.properties
+# Cấu hình chuỗi kết nối Database tại: src/main/resources/application-local.properties
 mvn clean install
 mvn spring-boot:run
 ```
 *Backend sẽ chạy tại: `http://localhost:8080`*
 *Swagger UI (Tài liệu API): `http://localhost:8080/swagger-ui.html`*
 
-### 3. Cài đặt Frontend
+#### 3. Cài đặt Frontend
 ```bash
 cd frontend
 npm install
