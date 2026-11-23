@@ -28,6 +28,20 @@ public class WebBookingController {
     @PostMapping
     public ResponseEntity<ApiResponse<String>> createBooking(@Valid @RequestBody WebBookingRequestDTO request) {
         webBookingService.createWebBooking(request);
-        return ResponseEntity.ok(ApiResponse.success("Dat ban thanh cong! He thong dang xu ly va cho xac nhan.", null));
+        return ResponseEntity.ok(ApiResponse.success("Đặt bàn thành công! Hệ thống đang xử lý và chờ xác nhận.", null));
+    }
+
+    @GetMapping("/my-bookings")
+    public ResponseEntity<ApiResponse<List<com.QuanLyDatBanNhaHang.demo.dto.response.PhieuDatBanResponseDTO>>> getMyBookings(
+            @RequestParam String identifier) {
+        return ResponseEntity.ok(ApiResponse.success(webBookingService.getMyBookings(identifier)));
+    }
+
+    @PutMapping("/{maPhieuDat}/cancel")
+    public ResponseEntity<ApiResponse<String>> cancelBooking(
+            @PathVariable String maPhieuDat,
+            @RequestParam String identifier) {
+        webBookingService.cancelWebBooking(maPhieuDat, identifier);
+        return ResponseEntity.ok(ApiResponse.success("Hủy đặt bàn thành công.", null));
     }
 }
