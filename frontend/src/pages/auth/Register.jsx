@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Form, Input, Button, Card, message, Typography } from 'antd';
 import { UserOutlined, LockOutlined, MailOutlined, PhoneOutlined } from '@ant-design/icons';
 import { useNavigate, Link } from 'react-router-dom';
+import apiClient from '../../services/apiClient';
 
 const { Title, Text } = Typography;
 
@@ -9,14 +10,18 @@ const Register = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const onFinish = (values) => {
+  const onFinish = async (values) => {
     setLoading(true);
-    // Mock API call
-    setTimeout(() => {
-      setLoading(false);
+    try {
+      await apiClient.post('/api/auth/register', values);
       message.success('Đăng ký tài khoản thành công! Vui lòng đăng nhập.');
       navigate('/login');
-    }, 1000);
+    } catch (error) {
+      const errorMsg = error.response?.data?.message || error.message || 'Đăng ký thất bại';
+      message.error(errorMsg);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

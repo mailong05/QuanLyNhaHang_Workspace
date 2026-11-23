@@ -1,20 +1,25 @@
 package com.QuanLyDatBanNhaHang.demo.controller;
 
 import com.QuanLyDatBanNhaHang.demo.dto.request.LoginRequestDTO;
+import com.QuanLyDatBanNhaHang.demo.dto.request.RegisterRequestDTO;
 import com.QuanLyDatBanNhaHang.demo.dto.request.ResetPasswordRequestDTO;
 import com.QuanLyDatBanNhaHang.demo.dto.request.VerifyAccountRequestDTO;
 import com.QuanLyDatBanNhaHang.demo.dto.response.JwtAuthResponseDTO;
 import com.QuanLyDatBanNhaHang.demo.entity.TaiKhoan;
 import com.QuanLyDatBanNhaHang.demo.entity.NhanVien;
 import com.QuanLyDatBanNhaHang.demo.entity.KhachHang;
+import com.QuanLyDatBanNhaHang.demo.enums.LoaiThanhVienKhachHang;
+import com.QuanLyDatBanNhaHang.demo.enums.QuyenHanTaiKhoan;
 import com.QuanLyDatBanNhaHang.demo.repository.TaiKhoanRepository;
 import com.QuanLyDatBanNhaHang.demo.repository.NhanVienRepository;
 import com.QuanLyDatBanNhaHang.demo.repository.KhachHangRepository;
 import com.QuanLyDatBanNhaHang.demo.security.CustomUserDetails;
 import com.QuanLyDatBanNhaHang.demo.security.JwtTokenProvider;
+import com.QuanLyDatBanNhaHang.demo.service.CodeGeneratorService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import com.QuanLyDatBanNhaHang.demo.dto.response.ApiResponse;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -35,6 +40,46 @@ public class AuthController {
     private final NhanVienRepository nhanVienRepository;
     private final KhachHangRepository khachHangRepository;
     private final PasswordEncoder passwordEncoder;
+    private final CodeGeneratorService codeGeneratorService;
+
+    @PostMapping("/register")
+    @Transactional(rollbackFor = Exception.class)
+    public ResponseEntity<ApiResponse<String>> registerCustomer(@Valid @RequestBody RegisterRequestDTO request) {
+        if (taiKhoanRepository.findByUsernameIgnoreCase(request.getUsername()).isPresent()) {
+            return ResponseEntity.badRequest().body(ApiResponse.error(400, "Tên đăng nhập đã tồn tại trong hệ thống."));
+        }
+
+        // Tạo tài khoản với quyền KHACH_HANG
+        TaiKhoan tk = new TaiKhoan();
+        tk.setUsername(request.getUsername());
+        tk.setPassword(passwordEncoder.encode(request.getPassword()));
+        tk.setQuyenHan(QuyenHanTaiKhoan.KHACH_HANG);
+        tk = taiKhoanRepository.save(tk);
+
+        // Kiểm tra xem khách hàng theo SĐT đã có chưa
+        Optional<KhachHang> existingKh = khachHangRepository.findBySdt(request.getSdt());
+        if (existingKh.isPresent()) {
+            KhachHang kh = existingKh.get();
+            kh.setTaiKhoan(tk);
+            if (request.getEmail() != null && !request.getEmail().isBlank()) {
+                kh.setEmail(request.getEmail());
+            }
+            khachHangRepository.save(kh);
+        } else {
+            KhachHang newKh = KhachHang.builder()
+                    .maKH(codeGeneratorService.generateNextMaKH())
+                    .hoTen(request.getHoTen())
+                    .sdt(request.getSdt())
+                    .email(request.getEmail())
+                    .diemTichLuy(0)
+                    .loaiThanhVien(LoaiThanhVienKhachHang.DONG)
+                    .taiKhoan(tk)
+                    .build();
+            khachHangRepository.save(newKh);
+        }
+
+        return ResponseEntity.ok(ApiResponse.success("Đăng ký tài khoản thành công! Vui lòng đăng nhập.", null));
+    }
 
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<JwtAuthResponseDTO>> authenticateUser(@Valid @RequestBody LoginRequestDTO loginRequest) {

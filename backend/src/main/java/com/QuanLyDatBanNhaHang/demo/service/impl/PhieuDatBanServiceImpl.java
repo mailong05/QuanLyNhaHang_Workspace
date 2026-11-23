@@ -202,8 +202,7 @@ public class PhieuDatBanServiceImpl implements PhieuDatBanService {
 
         
         if (requestDTO.getTrangThai() == TrangThaiPhieuDatBan.DANG_PHUC_VU) {
-            boolean hasOpenInvoice = hoaDonRepository.findAll().stream()
-                    .anyMatch(hd -> hd.getPhieuDatBan() != null && hd.getPhieuDatBan().getId().equals(pdb.getId()) && hd.getTrangThaiThanhToan() == com.QuanLyDatBanNhaHang.demo.enums.TrangThaiThanhToanHoaDon.CHUA_THANH_TOAN);
+            boolean hasOpenInvoice = hoaDonRepository.existsByPhieuDatBanIdAndTrangThaiThanhToan(pdb.getId(), com.QuanLyDatBanNhaHang.demo.enums.TrangThaiThanhToanHoaDon.CHUA_THANH_TOAN);
             if (!hasOpenInvoice) {
                 NhanVien nv = pdb.getNhanVien();
                 if (nv == null) {
