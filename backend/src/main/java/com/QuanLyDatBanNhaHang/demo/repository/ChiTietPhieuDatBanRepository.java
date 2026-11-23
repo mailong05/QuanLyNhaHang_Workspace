@@ -32,4 +32,14 @@ public interface ChiTietPhieuDatBanRepository extends JpaRepository<ChiTietPhieu
                                                      @Param("endTime") LocalDateTime endTime,
                                                      @Param("excludePhieuId") Long excludePhieuId);
 
+    @Query("SELECT c FROM ChiTietPhieuDatBan c JOIN FETCH c.banAn WHERE c.phieuDatBan.id = :phieuDatBanId")
+    List<ChiTietPhieuDatBan> findByPhieuDatBanIdWithBanAn(@Param("phieuDatBanId") Long phieuDatBanId);
+
+    List<ChiTietPhieuDatBan> findByPhieuDatBanId(Long phieuDatBanId);
+
+    @Query("SELECT c FROM ChiTietPhieuDatBan c JOIN FETCH c.phieuDatBan p WHERE c.banAn.id = :banAnId AND p.trangThai IN (:trangThais)")
+    List<ChiTietPhieuDatBan> findByBanAnIdAndTrangThaiIn(@Param("banAnId") Long banAnId, @Param("trangThais") List<com.QuanLyDatBanNhaHang.demo.enums.TrangThaiPhieuDatBan> trangThais);
+
+    @Query("SELECT c FROM ChiTietPhieuDatBan c JOIN FETCH c.phieuDatBan p WHERE c.banAn.maBan = :maBan AND p.trangThai IN (:trangThais)")
+    List<ChiTietPhieuDatBan> findByBanAnMaBanAndTrangThaiIn(@Param("maBan") String maBan, @Param("trangThais") List<com.QuanLyDatBanNhaHang.demo.enums.TrangThaiPhieuDatBan> trangThais);
 }

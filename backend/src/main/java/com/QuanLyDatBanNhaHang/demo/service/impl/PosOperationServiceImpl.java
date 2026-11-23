@@ -37,12 +37,13 @@ public class PosOperationServiceImpl implements PosOperationService {
     private final ChiTietPhieuDatBanRepository chiTietPhieuDatBanRepository;
     private final ChiTietHoaDonRepository chiTietHoaDonRepository;
     private final KhuyenMaiRepository khuyenMaiRepository;
+    private final com.QuanLyDatBanNhaHang.demo.service.CodeGeneratorService codeGeneratorService;
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public HoaDonResponseDTO moBan(PosMoBanRequestDTO request) {
-        // 1. Tìm Bàn Ăn
-        BanAn banAn = banAnRepository.findById(request.getBanId())
+        // 1. Tìm Bàn Ăn với PESSIMISTIC_WRITE Lock
+        BanAn banAn = banAnRepository.findByIdWithLock(request.getBanId())
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy bàn ăn"));
 
         if (banAn.getTrangThai() != TrangThaiBanAn.TRONG) {
@@ -65,12 +66,11 @@ public class PosOperationServiceImpl implements PosOperationService {
         }
 
         // 3. Xử lý Khách Hàng mặc định (Khách Lẻ)
-        KhachHang khachLe = khachHangRepository.findAll().stream()
-                .filter(kh -> "N/A".equals(kh.getSdt()) || "Khách Lẻ".equals(kh.getHoTen()))
-                .findFirst()
+        KhachHang khachLe = khachHangRepository.findBySdt("N/A")
+                .or(() -> khachHangRepository.findFirstByHoTenIgnoreCase("Khách Lẻ"))
                 .orElseGet(() -> {
                     KhachHang newKh = KhachHang.builder()
-                            .maKH("WLK" + System.currentTimeMillis())
+                            .maKH(codeGeneratorService.generateNextMaKH())
                             .hoTen("Khách Lẻ")
                             .sdt("N/A")
                             .loaiThanhVien(LoaiThanhVienKhachHang.DONG)
@@ -81,10 +81,10 @@ public class PosOperationServiceImpl implements PosOperationService {
 
         // 4. Khởi tạo Phiếu Đặt Bàn ảo (Walk-in)
         PhieuDatBan phieuDatBan = PhieuDatBan.builder()
-                .maPhieuDat("PDB" + System.currentTimeMillis())
+                .maPhieuDat(codeGeneratorService.generateNextMaPhieuDat())
                 .ngayLapPhieu(LocalDateTime.now())
                 .thoiGianDen(LocalDateTime.now())
-                .soLuongNguoi(banAn.getSoGhe() > 0 ? 1 : 1)
+                .soLuongNguoi(banAn.getSoGhe() > 0 ? banAn.getSoGhe() : 1)
                 .ghiChu("WALK-IN")
                 .trangThai(TrangThaiPhieuDatBan.DANG_PHUC_VU)
                 .khachHang(khachLe)
@@ -105,7 +105,7 @@ public class PosOperationServiceImpl implements PosOperationService {
                 .orElseThrow(() -> new ResourceNotFoundException("Chưa cấu hình Thuế trong hệ thống"));
 
         HoaDon hoaDon = HoaDon.builder()
-                .maHD("HD_" + System.currentTimeMillis())
+                .maHD(codeGeneratorService.generateNextMaHD())
                 .phieuDatBan(phieuDatBan)
                 .nhanVien(nhanVien)
                 .thue(thueMacDinh)
@@ -125,19 +125,18 @@ public class PosOperationServiceImpl implements PosOperationService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public HoaDonResponseDTO layHoaDonTheoBan(Long banId) {
         // Tìm Phiếu Đặt Bàn đang phục vụ tại Bàn này
-        ChiTietPhieuDatBan chiTiet = chiTietPhieuDatBanRepository.findAll().stream()
-                .filter(ct -> ct.getBanAn().getId().equals(banId) && ct.getPhieuDatBan().getTrangThai() == TrangThaiPhieuDatBan.DANG_PHUC_VU)
+        ChiTietPhieuDatBan chiTiet = chiTietPhieuDatBanRepository.findByBanAnIdAndTrangThaiIn(banId, List.of(TrangThaiPhieuDatBan.DANG_PHUC_VU))
+                .stream()
                 .findFirst()
                 .orElseThrow(() -> new ResourceNotFoundException("Bàn chưa được mở phục vụ"));
 
         PhieuDatBan phieuDatBan = chiTiet.getPhieuDatBan();
 
         // Tìm Hóa Đơn chưa thanh toán của Phiếu Đặt Bàn này
-        HoaDon hoaDon = hoaDonRepository.findAll().stream()
-                .filter(hd -> hd.getPhieuDatBan().getId().equals(phieuDatBan.getId()) && hd.getTrangThaiThanhToan() == TrangThaiThanhToanHoaDon.CHUA_THANH_TOAN)
-                .findFirst()
+        HoaDon hoaDon = hoaDonRepository.findFirstByPhieuDatBanIdAndTrangThaiThanhToan(phieuDatBan.getId(), TrangThaiThanhToanHoaDon.CHUA_THANH_TOAN)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy hóa đơn chưa thanh toán"));
 
         return mapToDTO(hoaDon);
@@ -160,9 +159,7 @@ public class PosOperationServiceImpl implements PosOperationService {
 
         final Long currentHoaDonId = hoaDon.getId();
         // Kiểm tra xem món ăn đã có trong hóa đơn chưa
-        Optional<ChiTietHoaDon> existingChiTiet = chiTietHoaDonRepository.findAll().stream()
-                .filter(ct -> ct.getHoaDon().getId().equals(currentHoaDonId) && ct.getMonAn().getId().equals(monAn.getId()))
-                .findFirst();
+        Optional<ChiTietHoaDon> existingChiTiet = chiTietHoaDonRepository.findByHoaDonIdAndMonAnId(currentHoaDonId, monAn.getId());
 
         if (existingChiTiet.isPresent()) {
             // Đã có -> Cộng dồn số lượng
@@ -183,9 +180,7 @@ public class PosOperationServiceImpl implements PosOperationService {
         }
 
         // Tính lại tổng tiền Hóa Đơn
-        List<ChiTietHoaDon> allChiTiet = chiTietHoaDonRepository.findAll().stream()
-                .filter(ct -> ct.getHoaDon().getId().equals(currentHoaDonId))
-                .toList();
+        List<ChiTietHoaDon> allChiTiet = chiTietHoaDonRepository.findByHoaDonId(currentHoaDonId);
 
         BigDecimal tongTienGoc = allChiTiet.stream().map(ChiTietHoaDon::getThanhTien).reduce(BigDecimal.ZERO, BigDecimal::add);
         hoaDon.setTongTienGoc(tongTienGoc);
@@ -203,7 +198,7 @@ public class PosOperationServiceImpl implements PosOperationService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public HoaDonResponseDTO thanhToanHoaDon(Long hoaDonId, PosThanhToanRequestDTO request) {
         HoaDon hoaDon = hoaDonRepository.findById(hoaDonId)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy Hóa đơn"));
@@ -214,9 +209,7 @@ public class PosOperationServiceImpl implements PosOperationService {
 
         // Tính toán lại
         final Long currentHoaDonId = hoaDon.getId();
-        List<ChiTietHoaDon> allChiTiet = chiTietHoaDonRepository.findAll().stream()
-                .filter(ct -> ct.getHoaDon().getId().equals(currentHoaDonId))
-                .toList();
+        List<ChiTietHoaDon> allChiTiet = chiTietHoaDonRepository.findByHoaDonId(currentHoaDonId);
 
         BigDecimal tongTienGoc = allChiTiet.stream().map(ChiTietHoaDon::getThanhTien).reduce(BigDecimal.ZERO, BigDecimal::add);
         BigDecimal thueSuat = hoaDon.getThueSuat() != null ? hoaDon.getThueSuat().divide(BigDecimal.valueOf(100), 2, java.math.RoundingMode.HALF_UP) : BigDecimal.ZERO;
@@ -239,9 +232,7 @@ public class PosOperationServiceImpl implements PosOperationService {
             phieuDatBan.setTrangThai(TrangThaiPhieuDatBan.HOAN_TAT);
             phieuDatBanRepository.save(phieuDatBan);
 
-            List<ChiTietPhieuDatBan> listBan = chiTietPhieuDatBanRepository.findAll().stream()
-                    .filter(ct -> ct.getPhieuDatBan().getId().equals(phieuDatBan.getId()))
-                    .toList();
+            List<ChiTietPhieuDatBan> listBan = chiTietPhieuDatBanRepository.findByPhieuDatBanId(phieuDatBan.getId());
             for (ChiTietPhieuDatBan ct : listBan) {
                 BanAn banAn = ct.getBanAn();
                 if (banAn != null) {
@@ -287,16 +278,14 @@ public class PosOperationServiceImpl implements PosOperationService {
             throw new IllegalArgumentException("Phiếu đặt nguồn không ở trạng thái đang phục vụ");
         }
 
-        HoaDon hoaDonNguon = hoaDonRepository.findAll().stream()
-                .filter(hd -> hd.getPhieuDatBan().getId().equals(phieuNguon.getId()) && hd.getTrangThaiThanhToan() == TrangThaiThanhToanHoaDon.CHUA_THANH_TOAN)
-                .findFirst()
+        HoaDon hoaDonNguon = hoaDonRepository.findFirstByPhieuDatBanIdAndTrangThaiThanhToan(phieuNguon.getId(), TrangThaiThanhToanHoaDon.CHUA_THANH_TOAN)
                 .orElse(null);
 
         BanAn banDich = banAnRepository.findByMaBanIgnoreCase(request.getMaBanDich())
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy Bàn đích: " + request.getMaBanDich()));
 
-        ChiTietPhieuDatBan ctDich = chiTietPhieuDatBanRepository.findAll().stream()
-                .filter(ct -> ct.getBanAn().getId().equals(banDich.getId()) && ct.getPhieuDatBan().getTrangThai() == TrangThaiPhieuDatBan.DANG_PHUC_VU)
+        ChiTietPhieuDatBan ctDich = chiTietPhieuDatBanRepository.findByBanAnIdAndTrangThaiIn(banDich.getId(), List.of(TrangThaiPhieuDatBan.DANG_PHUC_VU))
+                .stream()
                 .findFirst()
                 .orElseThrow(() -> new ResourceNotFoundException("Bàn đích không đang phục vụ"));
 
@@ -306,9 +295,7 @@ public class PosOperationServiceImpl implements PosOperationService {
              throw new IllegalArgumentException("Hai bàn đang thuộc cùng 1 phiếu, không thể gộp");
         }
 
-        HoaDon hoaDonDich = hoaDonRepository.findAll().stream()
-                .filter(hd -> hd.getPhieuDatBan().getId().equals(phieuDich.getId()) && hd.getTrangThaiThanhToan() == TrangThaiThanhToanHoaDon.CHUA_THANH_TOAN)
-                .findFirst()
+        HoaDon hoaDonDich = hoaDonRepository.findFirstByPhieuDatBanIdAndTrangThaiThanhToan(phieuDich.getId(), TrangThaiThanhToanHoaDon.CHUA_THANH_TOAN)
                 .orElse(null);
 
         if (hoaDonNguon != null && hoaDonDich != null) {

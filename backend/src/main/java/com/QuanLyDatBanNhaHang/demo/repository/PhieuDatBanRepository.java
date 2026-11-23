@@ -21,4 +21,18 @@ public interface PhieuDatBanRepository extends JpaRepository<PhieuDatBan, Long> 
     Page<PhieuDatBan> findAllWithRelations(Pageable pageable);
     @Query("SELECT MAX(CAST(SUBSTRING(p.maPhieuDat, 4, 10) AS int)) FROM PhieuDatBan p WHERE p.maPhieuDat LIKE 'PDB%' AND LENGTH(p.maPhieuDat) <= 10")
     Integer findMaxMaPhieuDat();
+
+    @Query("SELECT DISTINCT p FROM PhieuDatBan p " +
+           "LEFT JOIN FETCH p.chiTietPhieuDatBans c " +
+           "LEFT JOIN FETCH c.banAn " +
+           "WHERE p.khachHang.sdt = :sdt " +
+           "ORDER BY p.thoiGianDen DESC")
+    java.util.List<PhieuDatBan> findHistoryByKhachHangSdt(@Param("sdt") String sdt);
+
+    @Query("SELECT DISTINCT p FROM PhieuDatBan p " +
+           "LEFT JOIN FETCH p.chiTietPhieuDatBans c " +
+           "LEFT JOIN FETCH c.banAn " +
+           "WHERE p.khachHang.taiKhoan.username = :username " +
+           "ORDER BY p.thoiGianDen DESC")
+    java.util.List<PhieuDatBan> findHistoryByKhachHangUsername(@Param("username") String username);
 }

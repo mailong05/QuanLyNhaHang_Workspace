@@ -30,6 +30,7 @@ public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
     private final CustomAccessDeniedHandler customAccessDeniedHandler;
+    private final com.QuanLyDatBanNhaHang.demo.security.ratelimit.RateLimitingFilter rateLimitingFilter;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -44,10 +45,17 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        // Cho phép Frontend Vite (cổng 5173) được phép truy cập
-        configuration.setAllowedOrigins(List.of("http://localhost:5173"));
+        // Cho phép Frontend Vite (5173), Docker Nginx (80, 3000) được phép truy cập
+        configuration.setAllowedOrigins(List.of(
+                "http://localhost:5173",
+                "http://localhost:3000",
+                "http://localhost",
+                "http://127.0.0.1:5173",
+                "http://127.0.0.1:3000",
+                "http://127.0.0.1"
+        ));
         // Cho phép các phương thức gọi API
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         // Cho phép gửi kèm Header (rất quan trọng để gửi Token)
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
@@ -68,18 +76,19 @@ public class SecurityConfig {
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
                 // Public APIs
-                .requestMatchers("/api/auth/**", "/error", "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html","/api/web/booking/**", "/api/v1/images/**").permitAll()
-                .requestMatchers("/api/monan/**", "/api/banan/**", "/api/khuvuc/**").permitAll()
+                .requestMatchers("/api/auth/**", "/error", "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/api/web/booking/**", "/api/v1/images/**").permitAll()
+                .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/v1/mon-an/**", "/api/v1/ban-an/**", "/api/v1/khu-vuc/**").permitAll()
                 
                 // Quyen han cho STAFF (va ADMIN)
-                .requestMatchers("/api/hoadon/**", "/api/giaoca/**", "/api/phieudatban/**").hasAnyRole("ADMIN", "NHAN_VIEN")
+                .requestMatchers("/api/v1/hoa-don/**", "/api/v1/giao-ca/**", "/api/v1/phieu-dat-ban/**", "/api/v1/pos/**", "/api/staff/**").hasAnyRole("ADMIN", "NHAN_VIEN")
                 
                 // Quyen han chi danh cho ADMIN
-                .requestMatchers("/api/nhanvien/**", "/api/taikhoan/**").hasRole("ADMIN")
+                .requestMatchers("/api/v1/nhan-vien/**", "/api/v1/tai-khoan/**", "/api/v1/reports/**").hasRole("ADMIN")
                 
                 // Tat ca request khac deu phai xac thuc
                 .anyRequest().authenticated()
             )
+            .addFilterBefore(rateLimitingFilter, UsernamePasswordAuthenticationFilter.class)
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
             
         return http.build();

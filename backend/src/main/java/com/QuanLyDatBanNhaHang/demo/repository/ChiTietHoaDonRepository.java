@@ -28,4 +28,11 @@ public interface ChiTietHoaDonRepository extends JpaRepository<ChiTietHoaDon, Lo
                    "GROUP BY m.id, m.tenMon " +
                    "ORDER BY soLuong DESC", nativeQuery = true)
     List<com.QuanLyDatBanNhaHang.demo.dto.projection.TopItemProjection> getTopItems(@Param("start") java.time.LocalDateTime start, @Param("end") java.time.LocalDateTime end);
+
+    @Query("SELECT c FROM ChiTietHoaDon c JOIN FETCH c.monAn WHERE c.hoaDon.id = :hoaDonId")
+    List<ChiTietHoaDon> findByHoaDonIdWithMonAn(@Param("hoaDonId") Long hoaDonId);
+
+    List<ChiTietHoaDon> findByHoaDonId(Long hoaDonId);
+
+    Optional<ChiTietHoaDon> findByHoaDonIdAndMonAnId(Long hoaDonId, Long monAnId);
 }

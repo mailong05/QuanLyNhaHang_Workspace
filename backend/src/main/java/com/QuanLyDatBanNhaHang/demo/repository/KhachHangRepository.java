@@ -37,5 +37,7 @@ public interface KhachHangRepository extends JpaRepository<KhachHang, Long> {
 
     @org.springframework.data.jpa.repository.Query(value = "SELECT * FROM KhachHang WHERE id = :id AND deleted_at IS NOT NULL", nativeQuery = true)
     java.util.Optional<KhachHang> findDeletedById(@org.springframework.data.repository.query.Param("id") Long id);
+    Optional<KhachHang> findBySdt(String sdt);
+    Optional<KhachHang> findFirstByHoTenIgnoreCase(String hoTen);
     Optional<KhachHang> findByTaiKhoanUsername(String username);
 }

@@ -35,10 +35,10 @@ public class StaffOperationServiceImpl implements StaffOperationService {
         PhieuDatBan phieu = phieuDatBanRepository.findById(phieuDatBanId)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy phiếu đặt bàn"));
 
-        BanAn oldBan = banAnRepository.findById(request.getOldBanId())
+        BanAn oldBan = banAnRepository.findByIdWithLock(request.getOldBanId())
                 .orElseThrow(() -> new ResourceNotFoundException("Bàn cũ không tồn tại"));
 
-        BanAn newBan = banAnRepository.findById(request.getNewBanId())
+        BanAn newBan = banAnRepository.findByIdWithLock(request.getNewBanId())
                 .orElseThrow(() -> new ResourceNotFoundException("Bàn mới không tồn tại"));
 
         // Validate bàn mới phải đang TRONG
@@ -53,8 +53,8 @@ public class StaffOperationServiceImpl implements StaffOperationService {
         banAnRepository.save(newBan);
 
         // Đổi ChiTietPhieuDatBan sang bàn mới
-        ChiTietPhieuDatBan chiTiet = chiTietPhieuDatBanRepository.findAll().stream()
-                .filter(ct -> ct.getPhieuDatBan().getId().equals(phieu.getId()) && ct.getBanAn().getId().equals(oldBan.getId()))
+        ChiTietPhieuDatBan chiTiet = chiTietPhieuDatBanRepository.findByPhieuDatBanId(phieu.getId()).stream()
+                .filter(ct -> ct.getBanAn().getId().equals(oldBan.getId()))
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("Phiếu đặt bàn này không sử dụng bàn cũ được chỉ định!"));
 
@@ -83,8 +83,7 @@ public class StaffOperationServiceImpl implements StaffOperationService {
                 .orElseThrow(() -> new ResourceNotFoundException("Phiếu đích không tồn tại"));
 
         // Giải phóng các bàn của phiếu Nguồn (Set TRONG)
-        List<ChiTietPhieuDatBan> sourceChiTiets = chiTietPhieuDatBanRepository.findAll().stream()
-                .filter(ct -> ct.getPhieuDatBan().getId().equals(sourcePhieu.getId())).toList();
+        List<ChiTietPhieuDatBan> sourceChiTiets = chiTietPhieuDatBanRepository.findByPhieuDatBanId(sourcePhieu.getId());
 
         for (ChiTietPhieuDatBan ct : sourceChiTiets) {
             BanAn ban = ct.getBanAn();

@@ -14,6 +14,7 @@ import lombok.Setter;
 public class ChiTietPhieuDatBanResponseDTO {
     private Long id;
     private String maBan;
+    private Integer soGhe;
     private String viTri;
     private String ghiChu;
 }
